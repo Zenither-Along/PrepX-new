@@ -19,6 +19,7 @@ interface BranchItem {
 interface BranchColumnProps {
   title: string;
   items: BranchItem[];
+  width: number;
   onTitleChange: (title: string) => void;
   onItemAdd: () => void;
   onItemSelect: (id: string) => void;
@@ -34,6 +35,7 @@ interface BranchColumnProps {
 export function BranchColumn({
   title,
   items,
+  width,
   onTitleChange,
   onItemAdd,
   onItemSelect,
@@ -92,7 +94,10 @@ export function BranchColumn({
   };
 
   return (
-    <div className="flex h-full w-[320px] shrink-0 flex-col rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div 
+      className="flex h-full shrink-0 flex-col rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-75"
+      style={{ width: `${width}px` }}
+    >
       <div className="p-4 pb-2 flex items-center justify-between">
         <input
           type="text"
@@ -171,12 +176,12 @@ export function BranchColumn({
             </div>
           ))}
           
-          {/* Add Item button - centered below items */}
+          {/* Add Item button */}
           <button
             onClick={onItemAdd}
-            className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border-2 border-dashed border-gray-300 text-gray-400 transition-colors hover:border-gray-400 hover:text-gray-600"
+            className="flex h-14 w-full items-center justify-center rounded-3xl border-2 border-gray-300/80 bg-gray-50 text-gray-500 transition-all hover:border-gray-400 hover:bg-gray-100 hover:text-gray-700"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-6 w-6" strokeWidth={2.5} />
           </button>
         </div>
       </div>

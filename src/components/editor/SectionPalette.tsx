@@ -7,7 +7,8 @@ import {
   List, 
   ListOrdered, 
   Code, 
-  HelpCircle 
+  HelpCircle,
+  Table
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +31,7 @@ const sectionTypes = [
   { type: "link", label: "Link", icon: LinkIcon },
   { type: "list", label: "List", icon: List },
   { type: "code", label: "Code", icon: Code },
+  { type: "table", label: "Table", icon: Table },
   { type: "qna", label: "Q&A", icon: HelpCircle },
 ];
 

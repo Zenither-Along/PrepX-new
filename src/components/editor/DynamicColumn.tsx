@@ -30,6 +30,8 @@ import { SortableContentSection } from "./SortableContentSection";
 interface DynamicColumnProps {
   title: string;
   sections: any[];
+  width: number;
+  onTitleChange?: (title: string) => void;
   onSectionAdd: (type: string) => void;
   onSectionChange: (id: string, content: any) => void;
   onSectionDelete: (id: string) => void;
@@ -40,6 +42,8 @@ interface DynamicColumnProps {
 export function DynamicColumn({
   title,
   sections,
+  width,
+  onTitleChange,
   onSectionAdd,
   onSectionChange,
   onSectionDelete,
@@ -65,16 +69,19 @@ export function DynamicColumn({
   }
 
   return (
-    <div className="flex h-full w-[520px] shrink-0 flex-col rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div 
+      className="flex h-full shrink-0 flex-col rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-75"
+      style={{ width: `${width}px` }}
+    >
       <div className="flex items-center justify-between border-b border-gray-100 p-4">
-        <h2 className="text-lg font-bold text-black">{title}</h2>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => onTitleChange?.(e.target.value)}
+          className="flex-1 bg-transparent text-lg font-bold placeholder-gray-300 focus:outline-none"
+          placeholder="Content Title"
+        />
         <div className="flex items-center gap-2">
-          <SectionPalette onSelect={onSectionAdd}>
-            <Button size="sm" className="bg-black text-white hover:bg-gray-800">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Section
-            </Button>
-          </SectionPalette>
           {onDelete && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -96,7 +103,7 @@ export function DynamicColumn({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -125,6 +132,16 @@ export function DynamicColumn({
             )}
           </SortableContext>
         </DndContext>
+      </div>
+
+      {/* Fixed bottom section for Add Section button */}
+      <div className="flex h-16 items-center justify-end border-t border-gray-100 px-4">
+        <SectionPalette onSelect={onSectionAdd}>
+          <Button size="sm" className="bg-black text-white hover:bg-gray-800">
+            <Plus className="mr-2 h-4 w-4" />
+            Add Section
+          </Button>
+        </SectionPalette>
       </div>
     </div>
   );

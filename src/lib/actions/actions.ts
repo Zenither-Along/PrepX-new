@@ -32,34 +32,36 @@ export async function createPath(title: string) {
   }
 
   if (data) {
-    // Create the initial root branch
-    const { error: branchError } = await supabase
-      .from("branches")
+    // Create the initial root column
+    const { error: columnError } = await supabase
+      .from("columns")
       .insert([
         {
           path_id: data.id,
-          title: "Main Branch",
+          title: "Main Column",
           order_index: 0,
+          type: "branch",
+          parent_item_id: null
         },
       ]);
       
-    if (branchError) {
-        console.error("Error creating initial branch:", branchError);
+    if (columnError) {
+        console.error("Error creating initial column:", columnError);
     }
     
     redirect(`/path/${data.id}/edit`);
   }
 }
 
-export async function addBranchItem(branchId: string, title: string, orderIndex: number) {
+export async function addColumnItem(columnId: string, title: string, orderIndex: number) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
   const supabase = createSupabaseClient();
 
   const { data, error } = await supabase
-    .from("branch_items")
-    .insert([{ branch_id: branchId, title, order_index: orderIndex }])
+    .from("column_items")
+    .insert([{ column_id: columnId, title, order_index: orderIndex }])
     .select()
     .single();
 
@@ -71,7 +73,27 @@ export async function addBranchItem(branchId: string, title: string, orderIndex:
   return data;
 }
 
-export async function addContentSection(itemId: string, type: string, orderIndex: number) {
+export async function deleteColumn(columnId: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const supabase = createSupabaseClient();
+
+  // The database should cascade delete items and content sections
+  // But we'll be explicit to ensure proper cleanup
+  const { error } = await supabase
+    .from("columns")
+    .delete()
+    .eq("id", columnId);
+
+  if (error) {
+    console.error("Error deleting column:", error);
+    throw new Error(error.message);
+  }
+}
+
+
+export async function addContentSection(columnId: string, type: string, orderIndex: number) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
@@ -81,7 +103,7 @@ export async function addContentSection(itemId: string, type: string, orderIndex
 
   const { data, error } = await supabase
     .from("content_sections")
-    .insert([{ item_id: itemId, type, content, order_index: orderIndex }])
+    .insert([{ column_id: columnId, type, content, order_index: orderIndex }])
     .select()
     .single();
 
@@ -144,19 +166,19 @@ export async function savePath(pathId: string, title: string) {
   }
 }
 
-export async function saveBranch(branchId: string, title: string) {
+export async function saveColumn(columnId: string, title: string) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
   const supabase = createSupabaseClient();
 
   const { error } = await supabase
-    .from("branches")
+    .from("columns")
     .update({ title })
-    .eq("id", branchId);
+    .eq("id", columnId);
 
   if (error) {
-    console.error("Error saving branch:", error);
+    console.error("Error saving column:", error);
     throw new Error(error.message);
   }
 }
@@ -167,13 +189,20 @@ export async function saveItems(items: any[]) {
 
   const supabase = createSupabaseClient();
 
-  const { error } = await supabase
-    .from("branch_items")
-    .upsert(items);
+  for (const item of items) {
+    const { error } = await supabase
+      .from("column_items")
+      .update({ 
+        title: item.title, 
+        order_index: item.order_index,
+        // parent_item_id and column_type are removed from items, handled by columns structure now
+      })
+      .eq("id", item.id);
 
-  if (error) {
-    console.error("Error saving items:", error);
-    throw new Error(error.message);
+    if (error) {
+      console.error("Error updating item:", error);
+      throw new Error(error.message);
+    }
   }
 }
 
@@ -193,21 +222,21 @@ export async function saveSections(sections: any[]) {
   }
 }
 
-export async function deleteBranchItem(itemId: string) {
+export async function deleteColumnItem(itemId: string) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
   const supabase = createSupabaseClient();
 
-  // First delete all content sections for this item
+  // First delete any columns that are children of this item (cascade)
   await supabase
-    .from("content_sections")
+    .from("columns")
     .delete()
-    .eq("item_id", itemId);
+    .eq("parent_item_id", itemId);
 
   // Then delete the item itself
   const { error } = await supabase
-    .from("branch_items")
+    .from("column_items")
     .delete()
     .eq("id", itemId);
 
@@ -217,22 +246,24 @@ export async function deleteBranchItem(itemId: string) {
   }
 }
 
-export async function insertBranchItems(items: any[]) {
+export async function insertColumnItems(columnId: string, items: any[]) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
   const supabase = createSupabaseClient();
 
-  const { data, error } = await supabase
-    .from("branch_items")
-    .insert(items)
-    .select();
+  const itemsToInsert = items.map(item => ({
+    column_id: columnId,
+    title: item.title,
+    order_index: item.order_index,
+  }));
 
+  const { data, error } = await supabase.from("column_items").insert(itemsToInsert).select();
   if (error) {
     console.error("Error inserting items:", error);
     throw new Error(error.message);
   }
-
+  // Return inserted rows with generated IDs
   return data;
 }
 
@@ -242,17 +273,17 @@ export async function insertContentSections(sections: any[]) {
 
   const supabase = createSupabaseClient();
 
-  const { data, error } = await supabase
+  // Remove temp IDs - let database auto-generate UUIDs
+  const sectionsToInsert = sections.map(({ id, ...section }) => section);
+
+  const { error } = await supabase
     .from("content_sections")
-    .insert(sections)
-    .select();
+    .insert(sectionsToInsert);
 
   if (error) {
     console.error("Error inserting sections:", error);
     throw new Error(error.message);
   }
-
-  return data;
 }
 
 export async function deletePath(pathId: string) {
@@ -261,39 +292,11 @@ export async function deletePath(pathId: string) {
 
   const supabase = createSupabaseClient();
 
-  // First delete all related data (cascade delete)
-  const { data: branches } = await supabase
-    .from("branches")
-    .select("id")
+  // First delete all columns related to this path (cascade should handle items and sections)
+  await supabase
+    .from("columns")
+    .delete()
     .eq("path_id", pathId);
-
-  if (branches) {
-    for (const branch of branches) {
-      const { data: items } = await supabase
-        .from("branch_items")
-        .select("id")
-        .eq("branch_id", branch.id);
-
-      if (items) {
-        for (const item of items) {
-          await supabase
-            .from("content_sections")
-            .delete()
-            .eq("item_id", item.id);
-        }
-      }
-
-      await supabase
-        .from("branch_items")
-        .delete()
-        .eq("branch_id", branch.id);
-    }
-
-    await supabase
-      .from("branches")
-      .delete()
-      .eq("path_id", pathId);
-  }
 
   // Delete the path itself
   const { error } = await supabase
@@ -307,3 +310,32 @@ export async function deletePath(pathId: string) {
     throw new Error(error.message);
   }
 }
+
+// New helper to create a child column
+export async function createChildColumn(pathId: string, parentItemId: string | null, type: 'branch' | 'content') {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+  
+    const supabase = createSupabaseClient();
+    
+    console.log(`Creating child column: pathId=${pathId}, parentItemId=${parentItemId}, type=${type}`);
+  
+    const { data, error } = await supabase
+      .from("columns")
+      .insert([{
+          path_id: pathId,
+          parent_item_id: parentItemId,
+          type,
+          title: type === 'branch' ? 'New Branch' : 'Content',
+          order_index: 0 
+      }])
+      .select()
+      .single();
+  
+    if (error) {
+      console.error("Error creating child column:", error);
+      throw new Error(error.message);
+    }
+    console.log("Child column created:", data);
+    return data;
+  }

@@ -14,11 +14,11 @@ interface AddColumnPlaceholderProps {
 
 export function AddColumnPlaceholder({ onSelectType }: AddColumnPlaceholderProps) {
   return (
-    <div className="flex h-full w-[320px] shrink-0 flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/30">
+    <div className="flex h-full w-[120px] shrink-0 flex-col items-center justify-center border-x border-gray-200">
       <Popover>
         <PopoverTrigger asChild>
-          <button className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-gray-300 bg-white text-gray-400 transition-all hover:border-gray-400 hover:text-gray-600 hover:shadow-sm">
-            <Plus className="h-6 w-6" />
+          <button className="flex h-12 w-12 items-center justify-center rounded-lg border-2 border-gray-300 bg-white text-gray-600 transition-all hover:border-gray-400 hover:bg-gray-50">
+            <Plus className="h-5 w-5" strokeWidth={2} />
           </button>
         </PopoverTrigger>
         <PopoverContent className="w-52 p-2" align="center">
@@ -46,3 +46,4 @@ export function AddColumnPlaceholder({ onSelectType }: AddColumnPlaceholderProps
     </div>
   );
 }
+
