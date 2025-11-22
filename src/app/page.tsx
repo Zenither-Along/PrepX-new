@@ -31,7 +31,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { db } from "@/lib/db";
-import { createPath, deletePath } from "@/lib/actions/actions";
+import { createPath, deletePath, updatePathSubtitle } from "@/lib/actions/actions";
 
 interface LearningPath {
   id: string;
@@ -50,6 +50,12 @@ export default function Home() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newPathTitle, setNewPathTitle] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+
+  // Description dialog states
+  const [isDescDialogOpen, setIsDescDialogOpen] = useState(false);
+  const [editingPathId, setEditingPathId] = useState<string | null>(null);
+  const [editingDescription, setEditingDescription] = useState("");
+  const [isSavingDesc, setIsSavingDesc] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -134,6 +140,33 @@ export default function Home() {
     }
   };
 
+  const handleOpenDescDialog = (pathId: string, currentSubtitle: string) => {
+    setEditingPathId(pathId);
+    setEditingDescription(currentSubtitle || "");
+    setIsDescDialogOpen(true);
+  };
+
+  const handleSaveDescription = async () => {
+    if (!editingPathId) return;
+    
+    setIsSavingDesc(true);
+    try {
+      await updatePathSubtitle(editingPathId, editingDescription);
+      // Update UI
+      setPaths(paths.map(p => 
+        p.id === editingPathId ? { ...p, subtitle: editingDescription } : p
+      ));
+      setIsDescDialogOpen(false);
+      setEditingPathId(null);
+      setEditingDescription("");
+    } catch (error) {
+      console.error("Error updating description:", error);
+      alert("Failed to update description. Please try again.");
+    } finally {
+      setIsSavingDesc(false);
+    }
+  };
+
   if (!isLoaded) return null;
 
   if (!user) {
@@ -156,7 +189,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50/50">
       {/* Navigation */}
       <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-6">
+        <div className="mx-auto flex h-16 items-center justify-between px-12">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white">
               <BookOpen className="h-4 w-4" />
@@ -168,18 +201,18 @@ export default function Home() {
       </nav>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-5xl px-6 py-12">
-        <div className="mb-12 flex items-end justify-between">
+      <main className="mx-auto px-12 py-12">
+        <div className="mb-8 flex items-end justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">Hello, {user?.firstName || user?.username || 'there'}!</h1>
-            <p className="mt-2 text-gray-500">Manage and organize your learning journeys.</p>
+            <p className="mt-1 text-gray-500">Welcome to Your PrepX</p>
           </div>
           
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-black text-white hover:bg-gray-800 shadow-lg shadow-gray-200/50">
+              <Button className="bg-black text-white hover:bg-gray-800">
                 <Plus className="mr-2 h-4 w-4" />
-                New Path
+                Create Path
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -216,9 +249,9 @@ export default function Home() {
         </div>
 
         {loading ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-[200px] rounded-xl bg-gray-100 animate-pulse" />
+              <div key={i} className="h-[120px] rounded-xl bg-gray-100 animate-pulse" />
             ))}
           </div>
         ) : paths.length === 0 ? (
@@ -239,23 +272,27 @@ export default function Home() {
             </Button>
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {paths.map((path) => (
-              <Card key={path.id} className="group relative overflow-hidden border-gray-200 bg-white">
-                <CardHeader>
+              <Card key={path.id} className="group relative overflow-hidden border-gray-200 bg-white hover:shadow-md transition-shadow h-[155px] flex flex-col">
+                <CardHeader className="pb-3 flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <Link href={`/path/${path.id}`} className="flex-1 min-w-0">
-                      <CardTitle className="line-clamp-1 hover:text-blue-600 transition-colors cursor-pointer">
+                      <CardTitle className="text-base line-clamp-1 hover:text-blue-600 transition-colors cursor-pointer">
                         {path.title}
                       </CardTitle>
                     </Link>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 -mt-1">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleOpenDescDialog(path.id, path.subtitle)}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Add Description
+                        </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link href={`/path/${path.id}/edit`} className="flex items-center cursor-pointer">
                             <Pencil className="mr-2 h-4 w-4" />
@@ -269,24 +306,53 @@ export default function Home() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                  <CardDescription className="line-clamp-2">{path.subtitle || "No description"}</CardDescription>
+                  <p className="mt-2 text-sm text-gray-500 line-clamp-2 min-h-10">
+                    {path.subtitle && path.subtitle !== "Add a description" ? path.subtitle : ""}
+                  </p>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <div className="h-2 w-2 rounded-full bg-green-500" />
-                      <span>{path.branchCount || 0} Branches</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="h-2 w-2 rounded-full bg-blue-500" />
-                      <span>{path.itemCount || 0} Items</span>
-                    </div>
+                <CardFooter className="pt-2 pb-4">
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <BookOpen className="h-3.5 w-3.5" />
+                    <span>{new Date(path.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                   </div>
-                </CardContent>
+                </CardFooter>
               </Card>
             ))}
           </div>
         )}
+
+        {/* Description Dialog */}
+        <Dialog open={isDescDialogOpen} onOpenChange={setIsDescDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Description</DialogTitle>
+              <DialogDescription>
+                Add a brief description to help you remember what this learning path is about.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Input
+                  id="description"
+                  placeholder="e.g., A comprehensive guide to modern React development"
+                  value={editingDescription}
+                  onChange={(e) => setEditingDescription(e.target.value)}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDescDialogOpen(false)}>Cancel</Button>
+              <Button 
+                onClick={handleSaveDescription} 
+                disabled={isSavingDesc}
+                className="bg-black text-white hover:bg-gray-800"
+              >
+                {isSavingDesc ? "Saving..." : "Save"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );

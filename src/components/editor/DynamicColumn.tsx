@@ -4,6 +4,7 @@ import { Plus, MoreVertical, Trash2 } from "lucide-react";
 import { SectionPalette } from "./SectionPalette";
 import { ContentSection } from "./ContentSection";
 import { Button } from "@/components/ui/button";
+import { useState, useRef, useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,12 +51,35 @@ export function DynamicColumn({
   onSectionReorder,
   onDelete,
 }: DynamicColumnProps) {
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
+  const columnRef = useRef<HTMLDivElement>(null);
+
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        // Only activate drag if section is selected
+        delay: 0,
+        tolerance: 5,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Handle click outside to deselect
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (columnRef.current && !columnRef.current.contains(event.target as Node)) {
+        setSelectedSectionId(null);
+        setEditingSectionId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -70,6 +94,7 @@ export function DynamicColumn({
 
   return (
     <div 
+      ref={columnRef}
       className="flex h-full shrink-0 flex-col rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-75"
       style={{ width: `${width}px` }}
     >
@@ -127,6 +152,16 @@ export function DynamicColumn({
                   content={section.content}
                   onChange={(newContent) => onSectionChange(section.id, newContent)}
                   onDelete={() => onSectionDelete(section.id)}
+                  isSelected={selectedSectionId === section.id}
+                  isEditing={editingSectionId === section.id}
+                  onSelect={() => {
+                    setSelectedSectionId(section.id);
+                    setEditingSectionId(null);
+                  }}
+                  onEdit={() => {
+                    setEditingSectionId(section.id);
+                    setSelectedSectionId(null);
+                  }}
                 />
               ))
             )}

@@ -219,7 +219,7 @@ export default function ViewPathPage() {
       </header>
 
       {/* Main layout */}
-      <main className="flex flex-1 overflow-hidden gap-[5px]">
+      <main className="flex flex-1 overflow-x-auto overflow-y-hidden gap-[5px]">
         {columns.map((col, index) => {
             const selectedItemId = selectedItems.get(col.id);
             

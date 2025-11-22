@@ -166,6 +166,24 @@ export async function savePath(pathId: string, title: string) {
   }
 }
 
+export async function updatePathSubtitle(pathId: string, subtitle: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const supabase = createSupabaseClient();
+
+  const { error } = await supabase
+    .from("learning_paths")
+    .update({ subtitle })
+    .eq("id", pathId)
+    .eq("user_id", userId);
+
+  if (error) {
+    console.error("Error updating subtitle:", error);
+    throw new Error(error.message);
+  }
+}
+
 export async function saveColumn(columnId: string, title: string) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");

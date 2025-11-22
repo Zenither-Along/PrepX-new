@@ -10,9 +10,20 @@ interface SortableContentSectionProps {
   content: any;
   onChange: (content: any) => void;
   onDelete: () => void;
+  isSelected?: boolean;
+  isEditing?: boolean;
+  onSelect?: () => void;
+  onEdit?: () => void;
 }
 
-export function SortableContentSection({ id, ...props }: SortableContentSectionProps) {
+export function SortableContentSection({ 
+  id, 
+  isSelected = false,
+  isEditing = false,
+  onSelect,
+  onEdit,
+  ...props 
+}: SortableContentSectionProps) {
   const {
     attributes,
     listeners,
@@ -20,7 +31,10 @@ export function SortableContentSection({ id, ...props }: SortableContentSectionP
     transform,
     transition,
     isDragging,
-  } = useSortable({ id });
+  } = useSortable({ 
+    id,
+    disabled: !isSelected, // Only enable drag when selected
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -31,11 +45,18 @@ export function SortableContentSection({ id, ...props }: SortableContentSectionP
   };
 
   return (
-    <div ref={setNodeRef} style={style}>
+    <div 
+      ref={setNodeRef} 
+      style={style}
+      {...(isSelected ? { ...attributes, ...listeners } : {})}
+    >
       <ContentSection 
         id={id} 
         {...props} 
-        dragHandleProps={{ ...attributes, ...listeners }}
+        isSelected={isSelected}
+        isEditing={isEditing}
+        onSelect={onSelect}
+        onEdit={onEdit}
       />
     </div>
   );
