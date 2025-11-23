@@ -1,12 +1,13 @@
 "use client";
 
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, Pencil, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/db";
 import { ContentRenderer } from "@/components/view/ContentRenderer";
+import { ChatColumn } from "@/components/editor/ChatColumn";
 import { cn } from "@/lib/utils";
 import { Column, ColumnItem, ContentSection } from "./edit/types";
 
@@ -28,6 +29,9 @@ export default function ViewPathPage() {
   // Track column widths (column_id -> width in pixels)
   const [columnWidths, setColumnWidths] = useState<Map<string, number>>(new Map());
   const [resizing, setResizing] = useState<{ columnId: string; startX: number; startWidth: number } | null>(null);
+  
+  // Track chat state for each content column
+  const [openChats, setOpenChats] = useState<Set<string>>(new Set());
 
   // ---------------------------------------------------
   // Data fetching
@@ -277,14 +281,33 @@ export default function ViewPathPage() {
                 }
 
                 const colSections = sections.filter(s => s.column_id === col.id);
+                const isChatOpen = openChats.has(col.id);
                 
                 const width = columnWidths.get(col.id) || 1200;
                 return (
-                    <div key={col.id} className="relative flex shrink-0 border-x border-border" style={{ width: `${width}px` }}>
+                    <div key={col.id} className="relative flex shrink-0 gap-4 border-x border-border" style={{ width: isChatOpen ? `${width + 354}px` : `${width}px` }}>
                       <section className="flex-1 flex flex-col overflow-hidden bg-muted/30">
                           {/* Header section */}
-                          <div className="p-3 border-b border-border">
+                          <div className="p-3 border-b border-border flex items-center justify-between">
                             <h2 className="text-xl font-bold">{title}</h2>
+                            <Button 
+                              variant={isChatOpen ? "default" : "ghost"} 
+                              size="icon" 
+                              className="h-8 w-8 shrink-0 cursor-pointer"
+                              onClick={() => {
+                                setOpenChats(prev => {
+                                  const next = new Set(prev);
+                                  if (next.has(col.id)) {
+                                    next.delete(col.id);
+                                  } else {
+                                    next.add(col.id);
+                                  }
+                                  return next;
+                                });
+                              }}
+                            >
+                              <MessageSquare className="h-4 w-4" />
+                            </Button>
                           </div>
                           {/* Content area */}
                           <div className="flex-1 overflow-y-auto p-6 space-y-2 no-scrollbar">
@@ -297,6 +320,22 @@ export default function ViewPathPage() {
                             )}
                           </div>
                       </section>
+                      
+                      {/* Chat Column */}
+                      {isChatOpen && (
+                        <ChatColumn 
+                          columnId={col.id}
+                          contextData={colSections}
+                          onClose={() => {
+                            setOpenChats(prev => {
+                              const next = new Set(prev);
+                              next.delete(col.id);
+                              return next;
+                            });
+                          }}
+                        />
+                      )}
+                      
                       {/* Resize handle */}
                       <div
                         className="absolute right-0 top-0 h-full w-1 cursor-col-resize bg-transparent hover:bg-blue-400 transition-colors"

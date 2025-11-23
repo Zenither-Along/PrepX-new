@@ -110,13 +110,13 @@ export function DynamicColumn({
           {onDelete && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 cursor-pointer">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem 
-                  className="text-red-600" 
+                  className="text-red-600 cursor-pointer" 
                   onClick={onDelete}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
@@ -128,64 +128,64 @@ export function DynamicColumn({
         </div>
       </div>
 
-      <div 
-        className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar"
-        onClick={(e) => {
-          if (e.target === e.currentTarget) {
-            setSelectedSectionId(null);
-            setEditingSectionId(null);
-          }
-        }}
-      >
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
+        <div 
+          className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setSelectedSectionId(null);
+              setEditingSectionId(null);
+            }
+          }}
         >
-          <SortableContext
-            items={sections.map(s => s.id)}
-            strategy={verticalListSortingStrategy}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
           >
-            {sections.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-                <p>No content yet.</p>
-                <p className="text-sm">Click "Add Section" to start writing.</p>
-              </div>
-            ) : (
-              sections.map((section) => (
-                <SortableContentSection
-                  key={section.id}
-                  id={section.id}
-                  type={section.type}
-                  content={section.content}
-                  onChange={(newContent) => onSectionChange(section.id, newContent)}
-                  onDelete={() => onSectionDelete(section.id)}
-                  isSelected={selectedSectionId === section.id}
-                  isEditing={editingSectionId === section.id}
-                  onSelect={() => {
-                    setSelectedSectionId(section.id);
-                    setEditingSectionId(null);
-                  }}
-                  onEdit={() => {
-                    setEditingSectionId(section.id);
-                    setSelectedSectionId(null);
-                  }}
-                />
-              ))
-            )}
-          </SortableContext>
-        </DndContext>
-      </div>
+            <SortableContext
+              items={sections.map(s => s.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {sections.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+                  <p>No content yet.</p>
+                  <p className="text-sm">Click "Add Section" to start writing.</p>
+                </div>
+              ) : (
+                sections.map((section) => (
+                  <SortableContentSection
+                    key={section.id}
+                    id={section.id}
+                    type={section.type}
+                    content={section.content}
+                    onChange={(newContent) => onSectionChange(section.id, newContent)}
+                    onDelete={() => onSectionDelete(section.id)}
+                    isSelected={selectedSectionId === section.id}
+                    isEditing={editingSectionId === section.id}
+                    onSelect={() => {
+                      setSelectedSectionId(section.id);
+                      setEditingSectionId(null);
+                    }}
+                    onEdit={() => {
+                      setEditingSectionId(section.id);
+                      setSelectedSectionId(null);
+                    }}
+                  />
+                ))
+              )}
+            </SortableContext>
+          </DndContext>
+        </div>
 
-      {/* Fixed bottom section for Add Section button */}
-      <div className="flex h-16 items-center justify-end border-t border-border px-4">
-        <SectionPalette onSelect={onSectionAdd}>
-          <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-            <Plus className="mr-2 h-4 w-4" />
-            Add Section
-          </Button>
-        </SectionPalette>
-      </div>
+        {/* Fixed bottom section for Add Section button */}
+        <div className="flex h-16 items-center justify-end border-t border-border px-4">
+          <SectionPalette onSelect={onSectionAdd}>
+            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Section
+            </Button>
+          </SectionPalette>
+        </div>
     </div>
   );
 }
