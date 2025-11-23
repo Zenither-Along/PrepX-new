@@ -31,6 +31,7 @@ interface ColumnRendererProps {
   onEditStart?: (itemId: string) => void;
   onEditEnd?: () => void;
   isRoot?: boolean;
+  width?: number;
 }
 
 export function ColumnRenderer({
@@ -51,6 +52,7 @@ export function ColumnRenderer({
   onEditStart,
   onEditEnd,
   isRoot = false,
+  width = 320, // Default width
 }: ColumnRendererProps) {
   const selectedItemId = selectedPath[0];
   const childNode = selectedItemId ? node.children.get(selectedItemId) : null;
@@ -63,6 +65,7 @@ export function ColumnRenderer({
         <BranchColumn
           title={node.title}
           items={node.items}
+          width={width}
           onTitleChange={onTitleChange || (() => {})}
           onItemAdd={onItemAdd}
           onItemSelect={onItemSelect}
@@ -80,6 +83,7 @@ export function ColumnRenderer({
         <DynamicColumn
           title={node.title}
           sections={node.sections || []}
+          width={width} // Use the passed width or default
           onSectionAdd={onSectionAdd}
           onSectionChange={onSectionChange}
           onSectionDelete={onSectionDelete}

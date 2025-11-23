@@ -10,7 +10,7 @@ interface ParagraphEditorProps {
 export function ParagraphEditor({ content, onChange }: ParagraphEditorProps) {
   return (
     <div className="space-y-1">
-      <label className="text-xs font-medium text-gray-500">Paragraph</label>
+      <label className="text-xs font-medium text-muted-foreground">Paragraph</label>
       <Textarea
         value={content.text || ""}
         onChange={(e) => {
@@ -22,7 +22,7 @@ export function ParagraphEditor({ content, onChange }: ParagraphEditorProps) {
           e.target.style.height = 'auto';
           e.target.style.height = `${e.target.scrollHeight}px`;
         }}
-        className="min-h-[80px] resize-none border-gray-200 shadow-none focus-visible:ring-1 focus-visible:ring-blue-200 text-base leading-relaxed p-3 overflow-hidden"
+        className="min-h-[80px] resize-none border-border shadow-none focus-visible:ring-1 focus-visible:ring-primary text-base leading-relaxed p-3 overflow-hidden bg-transparent text-foreground"
         placeholder="Type your paragraph here..."
         rows={1}
       />

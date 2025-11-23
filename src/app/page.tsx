@@ -5,6 +5,7 @@ import { Plus, BookOpen, MoreVertical, Trash2, Pencil, Eye } from "lucide-react"
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ModeToggle } from "@/components/mode-toggle";
 import {
   Card,
   CardContent,
@@ -186,17 +187,20 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 items-center justify-between px-12">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <BookOpen className="h-4 w-4" />
             </div>
             <span className="text-lg font-bold tracking-tight">PrepX</span>
           </div>
-          <UserButton afterSignOutUrl="/" />
+          <div className="flex items-center gap-4">
+            <ModeToggle />
+            <UserButton afterSignOutUrl="/" />
+          </div>
         </div>
       </nav>
 
@@ -204,13 +208,13 @@ export default function Home() {
       <main className="mx-auto px-12 py-12">
         <div className="mb-8 flex items-end justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Hello, {user?.firstName || user?.username || 'there'}!</h1>
-            <p className="mt-1 text-gray-500">Welcome to Your PrepX</p>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Hello, {user?.firstName || user?.username || 'there'}!</h1>
+            <p className="mt-1 text-muted-foreground">Welcome to Your PrepX</p>
           </div>
           
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-black text-white hover:bg-gray-800">
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Path
               </Button>
@@ -239,7 +243,7 @@ export default function Home() {
                 <Button 
                   onClick={handleCreatePath} 
                   disabled={!newPathTitle.trim() || isCreating}
-                  className="bg-black text-white hover:bg-gray-800"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   {isCreating ? "Creating..." : "Create Path"}
                 </Button>
@@ -251,7 +255,7 @@ export default function Home() {
         {loading ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-[120px] rounded-xl bg-gray-100 animate-pulse" />
+              <div key={i} className="h-[120px] rounded-xl bg-muted animate-pulse" />
             ))}
           </div>
         ) : paths.length === 0 ? (
@@ -274,7 +278,7 @@ export default function Home() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {paths.map((path) => (
-              <Card key={path.id} className="group relative overflow-hidden border-gray-200 bg-white hover:shadow-md transition-shadow h-[155px] flex flex-col">
+              <Card key={path.id} className="group relative overflow-hidden border-border bg-card hover:shadow-md transition-shadow h-[155px] flex flex-col">
                 <CardHeader className="pb-3 flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <Link href={`/path/${path.id}`} className="flex-1 min-w-0">
@@ -306,12 +310,12 @@ export default function Home() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                  <p className="mt-2 text-sm text-gray-500 line-clamp-2 min-h-10">
+                  <p className="mt-2 text-sm text-muted-foreground line-clamp-2 min-h-10">
                     {path.subtitle && path.subtitle !== "Add a description" ? path.subtitle : ""}
                   </p>
                 </CardHeader>
                 <CardFooter className="pt-2 pb-4">
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <BookOpen className="h-3.5 w-3.5" />
                     <span>{new Date(path.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                   </div>
@@ -346,7 +350,7 @@ export default function Home() {
               <Button 
                 onClick={handleSaveDescription} 
                 disabled={isSavingDesc}
-                className="bg-black text-white hover:bg-gray-800"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 {isSavingDesc ? "Saving..." : "Save"}
               </Button>

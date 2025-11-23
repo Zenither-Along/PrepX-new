@@ -95,7 +95,7 @@ export function BranchColumn({
 
   return (
     <div 
-      className="flex h-full shrink-0 flex-col rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-75"
+      className="flex h-full shrink-0 flex-col rounded-xl border border-border bg-card shadow-sm transition-all duration-75"
       style={{ width: `${width}px` }}
     >
       <div className="p-4 pb-2 flex items-center justify-between">
@@ -103,7 +103,7 @@ export function BranchColumn({
           type="text"
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
-          className="flex-1 bg-transparent text-lg font-bold placeholder-gray-300 focus:outline-none"
+          className="flex-1 bg-transparent text-lg font-bold placeholder-muted-foreground focus:outline-none"
           placeholder="Branch Title"
         />
         {onDelete && (
@@ -134,8 +134,8 @@ export function BranchColumn({
               className={cn(
                 "group relative flex items-center justify-between rounded-lg border-2 px-4 py-3 transition-all",
                 selectedItemId === item.id
-                  ? "border-blue-500 bg-blue-50/50"
-                  : "border-gray-200 bg-white hover:border-gray-300"
+                  ? "border-primary bg-primary/5"
+                  : "border-border bg-card hover:border-primary/50"
               )}
             >
               {editingItemId === item.id ? (
@@ -146,14 +146,14 @@ export function BranchColumn({
                   onChange={(e) => setEditValue(e.target.value)}
                   onBlur={handleEditComplete}
                   onKeyDown={handleEditKeyDown}
-                  className="flex-1 bg-transparent text-sm font-medium text-black focus:outline-none"
+                  className="flex-1 bg-transparent text-sm font-medium text-foreground focus:outline-none"
                 />
               ) : (
                 <span 
                   onClick={() => handleItemClick(item.id)}
                   className={cn(
                     "flex-1 text-sm font-medium cursor-pointer",
-                    selectedItemId === item.id ? "text-blue-900" : "text-gray-700"
+                    selectedItemId === item.id ? "text-primary" : "text-foreground"
                   )}
                 >
                   {item.title}
@@ -179,7 +179,7 @@ export function BranchColumn({
           {/* Add Item button */}
           <button
             onClick={onItemAdd}
-            className="flex h-14 w-full items-center justify-center rounded-3xl border-2 border-gray-300/80 bg-gray-50 text-gray-500 transition-all hover:border-gray-400 hover:bg-gray-100 hover:text-gray-700"
+            className="flex h-14 w-full items-center justify-center rounded-3xl border-2 border-border bg-muted/50 text-muted-foreground transition-all hover:border-primary/50 hover:bg-muted hover:text-foreground cursor-pointer"
           >
             <Plus className="h-6 w-6" strokeWidth={2.5} />
           </button>

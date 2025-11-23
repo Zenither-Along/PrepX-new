@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useState, useRef, useEffect } from "react";
 
 interface ImageEditorProps {
   content: any;
@@ -9,16 +10,30 @@ interface ImageEditorProps {
 }
 
 export function ImageEditor({ content, onChange }: ImageEditorProps) {
+  const [isResizing, setIsResizing] = useState(false);
+  const [localSize, setLocalSize] = useState({ width: 0, height: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const animationFrameRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!isResizing) {
+      setLocalSize({
+        width: content.width || 0,
+        height: content.height || 0
+      });
+    }
+  }, [content.width, content.height, isResizing]);
+
   return (
-    <div className="space-y-2">
-      <label className="block text-xs font-medium text-gray-500">Image</label>
+    <div className="space-y-2" ref={containerRef}>
+      <label className="block text-xs font-medium text-muted-foreground">Image</label>
       {content.url ? (
-        <div className="relative group/image inline-block">
+        <div className="relative group/image inline-block max-w-full">
           <div 
-            className="relative rounded-lg border border-gray-200 bg-white overflow-hidden"
+            className="relative rounded-lg border border-border bg-card overflow-hidden"
             style={{ 
-              width: content.width ? `${content.width}px` : 'auto',
-              height: content.height ? `${content.height}px` : 'auto',
+              width: isResizing && localSize.width ? `${localSize.width}px` : (content.width ? `${content.width}px` : 'auto'),
+              height: isResizing && localSize.height ? `${localSize.height}px` : (content.height ? `${content.height}px` : 'auto'),
               maxWidth: '100%'
             }}
           >
@@ -35,46 +50,100 @@ export function ImageEditor({ content, onChange }: ImageEditorProps) {
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                setIsResizing(true);
+                
                 const startX = e.clientX;
                 const startY = e.clientY;
                 const startWidth = e.currentTarget.parentElement?.offsetWidth || 0;
                 const startHeight = e.currentTarget.parentElement?.offsetHeight || 0;
+                const maxWidth = containerRef.current?.offsetWidth || 1000;
+
+                // Initialize local size
+                setLocalSize({ width: startWidth, height: startHeight });
 
                 const handleMouseMove = (moveEvent: MouseEvent) => {
-                  const newWidth = startWidth + (moveEvent.clientX - startX);
-                  const newHeight = startHeight + (moveEvent.clientY - startY);
-                  
-                  onChange({ 
-                    ...content, 
-                    width: Math.max(100, newWidth),
-                    height: Math.max(100, newHeight)
+                  if (animationFrameRef.current) {
+                    cancelAnimationFrame(animationFrameRef.current);
+                  }
+
+                  animationFrameRef.current = requestAnimationFrame(() => {
+                    const newWidth = startWidth + (moveEvent.clientX - startX);
+                    const newHeight = startHeight + (moveEvent.clientY - startY);
+                    
+                    // Constrain width to parent container and min width
+                    const constrainedWidth = Math.min(Math.max(100, newWidth), maxWidth);
+                    const constrainedHeight = Math.max(100, newHeight);
+
+                    setLocalSize({ 
+                      width: constrainedWidth,
+                      height: constrainedHeight
+                    });
                   });
                 };
 
                 const handleMouseUp = () => {
                   document.removeEventListener('mousemove', handleMouseMove);
                   document.removeEventListener('mouseup', handleMouseUp);
+                  if (animationFrameRef.current) {
+                    cancelAnimationFrame(animationFrameRef.current);
+                  }
+                  
+                  setIsResizing(false);
+                  
+                  // Commit the final size
+                  // We need to read the latest localSize, but since we're in a closure,
+                  // we'll rely on the last state update or re-calculate.
+                  // Better to just commit the last calculated size from the event if possible,
+                  // but for simplicity let's use the state setter callback to get the latest value
+                  // actually, we can't easily access the latest state here without a ref.
+                  // Let's use a ref for the current size being dragged.
+                };
+                
+                // We need a way to commit the final size. 
+                // Let's modify handleMouseUp to use the last known size from a ref
+                // or just pass the final size to onChange.
+                
+                // Revised approach for mouseUp:
+                const handleMouseUpWithCommit = (upEvent: MouseEvent) => {
+                   document.removeEventListener('mousemove', handleMouseMove);
+                   document.removeEventListener('mouseup', handleMouseUpWithCommit);
+                   if (animationFrameRef.current) {
+                     cancelAnimationFrame(animationFrameRef.current);
+                   }
+                   
+                   const finalWidth = startWidth + (upEvent.clientX - startX);
+                   const finalHeight = startHeight + (upEvent.clientY - startY);
+                   
+                   const constrainedWidth = Math.min(Math.max(100, finalWidth), maxWidth);
+                   const constrainedHeight = Math.max(100, finalHeight);
+                   
+                   setIsResizing(false);
+                   onChange({ 
+                     ...content, 
+                     width: constrainedWidth,
+                     height: constrainedHeight
+                   });
                 };
 
                 document.addEventListener('mousemove', handleMouseMove);
-                document.addEventListener('mouseup', handleMouseUp);
+                document.addEventListener('mouseup', handleMouseUpWithCommit);
               }}
             >
-              <div className="absolute bottom-1 right-1 h-3 w-3 rounded-br bg-blue-500/50" />
+              <div className="absolute bottom-1 right-1 h-3 w-3 rounded-br bg-primary/50" />
             </div>
           </div>
 
           <Button 
             variant="outline" 
             size="sm" 
-            className="absolute top-2 right-2 bg-white opacity-0 group-hover/image:opacity-100 transition-opacity"
+            className="absolute top-2 right-2 bg-card opacity-0 group-hover/image:opacity-100 transition-opacity"
             onClick={() => onChange({ ...content, url: "", width: undefined, height: undefined })}
           >
             Change
           </Button>
         </div>
       ) : (
-        <div className="rounded-lg border border-gray-200 bg-white p-6 space-y-3">
+        <div className="rounded-lg border border-border bg-card p-6 space-y-3">
           <div className="flex gap-2">
             <Button 
               variant="outline" 

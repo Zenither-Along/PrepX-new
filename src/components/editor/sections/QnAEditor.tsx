@@ -19,17 +19,17 @@ export function QnAEditor({ content, onChange }: QnAEditorProps) {
         <div className="flex items-center gap-2">
           <button 
             onClick={() => setIsOpen(!isOpen)}
-            className="text-gray-500 hover:text-gray-700 transition-colors"
+            className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
           >
             {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </button>
           <span className="text-base">●</span>
-          <label className="text-sm font-semibold text-gray-700">Question?</label>
+          <label className="text-sm font-semibold text-foreground">Question?</label>
         </div>
         <Input
           value={content.question || ""}
           onChange={(e) => onChange({ ...content, question: e.target.value })}
-          className="border-gray-200 text-sm"
+          className="border-border text-sm bg-transparent text-foreground"
           placeholder="Enter question"
         />
       </div>
@@ -38,7 +38,7 @@ export function QnAEditor({ content, onChange }: QnAEditorProps) {
         <div className="space-y-1 ml-6">
           <div className="flex items-center gap-2">
             <span className="text-sm">^</span>
-            <label className="text-sm font-medium text-gray-600">Ans.</label>
+            <label className="text-sm font-medium text-muted-foreground">Ans.</label>
           </div>
           <Textarea
             value={content.answer || ""}

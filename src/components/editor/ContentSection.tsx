@@ -92,7 +92,7 @@ export function ContentSection({
         return <TableEditor content={content} onChange={onChange} />;
       default:
         return (
-          <div className="rounded-lg border border-gray-100 bg-gray-50 p-4 text-sm text-gray-500">
+          <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
             Unsupported section type: {type}
           </div>
         );
@@ -103,25 +103,25 @@ export function ContentSection({
     <div 
       className={cn(
         "group relative flex items-start transition-all",
-        isSelected && "ring-2 ring-blue-500 ring-offset-2 rounded-lg",
+        isSelected && "ring-2 ring-primary ring-offset-2 rounded-lg",
         !isEditing && "cursor-pointer"
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={!isEditing ? handleClick : undefined}
     >
-      <div className="flex-1 rounded-lg p-2 transition-colors hover:bg-gray-50/50">
+      <div className="flex-1 rounded-lg p-2 transition-colors hover:bg-muted/50">
         {renderEditor()}
       </div>
 
       <div className={cn(
-        "absolute -right-8 top-2 opacity-0 transition-opacity",
+        "absolute right-2 top-2 opacity-0 transition-opacity z-10",
         (isHovered || isSelected) && "opacity-100"
       )}>
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-gray-400 hover:text-red-600"
+          className="h-8 w-8 text-muted-foreground hover:text-destructive bg-background/50 backdrop-blur-sm hover:bg-background/80"
           onClick={(e) => {
             e.stopPropagation();
             onDelete();

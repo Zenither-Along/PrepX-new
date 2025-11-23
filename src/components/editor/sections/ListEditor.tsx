@@ -14,15 +14,15 @@ export function ListEditor({ content, onChange }: ListEditorProps) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-medium text-gray-500">List</label>
-        <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
+        <label className="text-xs font-medium text-muted-foreground">List</label>
+        <div className="flex gap-1 rounded-lg bg-muted p-1">
           <button
             onClick={() => onChange({ ...content, listType: 'unordered' })}
             className={cn(
               "rounded px-2 py-1 text-xs font-medium transition-colors",
               (!content.listType || content.listType === 'unordered') 
-                ? "bg-white text-gray-900 shadow-sm" 
-                : "text-gray-500 hover:text-gray-900"
+                ? "bg-background text-foreground shadow-sm" 
+                : "text-muted-foreground hover:text-foreground cursor-pointer"
             )}
           >
             Bullet
@@ -32,8 +32,8 @@ export function ListEditor({ content, onChange }: ListEditorProps) {
             className={cn(
               "rounded px-2 py-1 text-xs font-medium transition-colors",
               content.listType === 'ordered' 
-                ? "bg-white text-gray-900 shadow-sm" 
-                : "text-gray-500 hover:text-gray-900"
+                ? "bg-background text-foreground shadow-sm" 
+                : "text-muted-foreground hover:text-foreground cursor-pointer"
             )}
           >
             Numbered
@@ -44,11 +44,11 @@ export function ListEditor({ content, onChange }: ListEditorProps) {
         {(content.items || []).map((item: string, index: number) => (
           <div key={index} className="flex items-center gap-2">
             {content.listType === 'ordered' ? (
-              <span className="text-sm font-medium text-gray-500 w-5 text-right shrink-0">
+              <span className="text-sm font-medium text-muted-foreground w-5 text-right shrink-0">
                 {index + 1}.
               </span>
             ) : (
-              <div className="h-1.5 w-1.5 rounded-full bg-gray-400 shrink-0 mx-1.5" />
+              <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground shrink-0 mx-1.5" />
             )}
             <Input
               value={item}
@@ -74,7 +74,7 @@ export function ListEditor({ content, onChange }: ListEditorProps) {
           </div>
         ))}
         <button
-          className="text-sm text-gray-500 hover:text-gray-700 pl-4"
+          className="text-sm text-muted-foreground hover:text-foreground pl-4 cursor-pointer"
           onClick={() => onChange({ ...content, items: [...(content.items || []), ""] })}
         >
           + Add item

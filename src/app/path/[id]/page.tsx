@@ -199,17 +199,17 @@ export default function ViewPathPage() {
   if (!path) return <div className="flex h-screen items-center justify-center">Path not found</div>;
 
   return (
-    <div className="flex h-screen flex-col bg-white text-black">
+    <div className="flex h-screen flex-col bg-background text-foreground">
       {/* Header */}
-      <header className="flex h-16 items-center justify-between border-b border-gray-100 px-4">
+      <header className="flex h-16 items-center justify-between border-b border-border px-4">
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon" asChild className="hover:bg-gray-100">
+          <Button variant="ghost" size="icon" asChild className="hover:bg-accent hover:text-accent-foreground">
             <Link href="/">
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>
-          <div className="h-6 w-px bg-gray-200" />
-          <h1 className="text-lg font-bold truncate max-w-[300px]">{path.title}</h1>
+          <div className="h-6 w-px bg-border" />
+          <h1 className="text-lg font-bold">{path.title}</h1>
         </div>
         <Button size="sm" asChild className="bg-black text-white hover:bg-gray-800">
           <Link href={`/path/${id}/edit`} className="flex items-center gap-2">
@@ -226,10 +226,10 @@ export default function ViewPathPage() {
             if (col.type === 'branch') {
                 const width = columnWidths.get(col.id) || 320;
                 return (
-                    <div key={col.id} className="relative flex shrink-0 border-x border-gray-200" style={{ width: `${width}px` }}>
-                      <aside className="flex-1 flex flex-col overflow-hidden bg-gray-50">
+                    <div key={col.id} className="relative flex shrink-0 border-x border-border" style={{ width: `${width}px` }}>
+                      <aside className="flex-1 flex flex-col overflow-hidden bg-muted/30">
                         {/* Header section */}
-                        <div className="p-3 border-b border-gray-100">
+                        <div className="p-3 border-b border-border">
                           <h2 className="text-xl font-bold">{col.title}</h2>
                         </div>
                         {/* Items area */}
@@ -240,7 +240,7 @@ export default function ViewPathPage() {
                               onClick={() => onSelectItem(col.id, item.id)}
                               className={cn(
                                 "w-full rounded-lg px-4 py-3 text-left text-sm font-medium transition-colors",
-                                selectedItemId === item.id ? "bg-black text-white shadow-md" : "text-gray-600 hover:bg-gray-200"
+                                selectedItemId === item.id ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                               )}
                             >
                               {item.title}
@@ -280,16 +280,16 @@ export default function ViewPathPage() {
                 
                 const width = columnWidths.get(col.id) || 1200;
                 return (
-                    <div key={col.id} className="relative flex shrink-0 border-x border-gray-200" style={{ width: `${width}px` }}>
-                      <section className="flex-1 flex flex-col overflow-hidden bg-white">
+                    <div key={col.id} className="relative flex shrink-0 border-x border-border" style={{ width: `${width}px` }}>
+                      <section className="flex-1 flex flex-col overflow-hidden bg-muted/30">
                           {/* Header section */}
-                          <div className="p-3 border-b border-gray-100">
+                          <div className="p-3 border-b border-border">
                             <h2 className="text-xl font-bold">{title}</h2>
                           </div>
                           {/* Content area */}
                           <div className="flex-1 overflow-y-auto p-6 space-y-2 no-scrollbar">
                             {colSections.length === 0 ? (
-                              <p className="text-gray-400 italic">No content in this section.</p>
+                              <p className="text-muted-foreground italic">No content in this section.</p>
                             ) : (
                               colSections.map(section => (
                                 <ContentRenderer key={section.id} type={section.type} content={section.content} />

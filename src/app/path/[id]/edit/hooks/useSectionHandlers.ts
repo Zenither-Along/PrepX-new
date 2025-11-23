@@ -1,62 +1,43 @@
-import type { ContentSection } from '../types';
+import { ContentSection } from '../types';
 
 export function useSectionHandlers(
-  selectedItemId: string | undefined,
-  selectedSubItemId: string | undefined,
-  sections: ContentSection[],
-  setSections: (sections: ContentSection[]) => void,
-  newSections: Set<string>,
-  setNewSections: (sections: Set<string>) => void,
-  deletedSections: Set<string>,
-  setDeletedSections: (sections: Set<string>) => void,
-  setHasUnsavedChanges: (value: boolean) => void
+  editorData: any,
+  editorSave: any
 ) {
-  const handleAddSection = (type: string, columnId: string) => {
-    if (!columnId) return;
-    
-    // Generate temporary ID
-    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
-    const content = (type === 'heading' || type === 'subheading' || type === 'paragraph') ? { text: '' } : { url: '' };
-    
+  const handleAddSection = (columnId: string, type: 'heading' | 'paragraph' | 'image' | 'video' | 'code' | 'subheading') => {
     const newSection = {
-      id: tempId,
+      id: `temp-${Date.now()}`,
       column_id: columnId,
       type,
-      content,
-      order_index: sections.length,
+      content: type === 'heading' || type === 'paragraph' || type === 'subheading' ? { text: '' } : { url: '' },
+      order_index: editorData.sections.filter((s: ContentSection) => s.column_id === columnId).length
     };
     
-    setSections([...sections, newSection]);
-    setNewSections(new Set(newSections).add(tempId));
-    setHasUnsavedChanges(true);
+    editorData.setSections((prev: ContentSection[]) => [...prev, newSection]);
+    editorSave.setNewSections((prev: Set<string>) => new Set(prev).add(newSection.id));
+    editorSave.setHasUnsavedChanges(true);
   };
 
-  const handleUpdateSection = (id: string, content: any) => {
-    // Optimistic update
-    setSections(sections.map(s => s.id === id ? { ...s, content } : s));
-    setHasUnsavedChanges(true);
+  const handleUpdateSection = (sectionId: string, content: any) => {
+    editorData.setSections((prev: ContentSection[]) => prev.map((s: ContentSection) => s.id === sectionId ? { ...s, content } : s));
+    editorSave.setHasUnsavedChanges(true);
   };
 
-  const handleDeleteSection = (id: string) => {
-    setSections(sections.filter(s => s.id !== id));
+  const handleDeleteSection = (sectionId: string) => {
+    editorData.setSections((prev: ContentSection[]) => prev.filter((s: ContentSection) => s.id !== sectionId));
+    editorSave.setDeletedSections((prev: Set<string>) => new Set(prev).add(sectionId));
+    editorSave.setHasUnsavedChanges(true);
+  };
+
+  const handleSectionReorder = (columnId: string, newSections: any[]) => {
+    // Filter out sections not in this column
+    const otherSections = editorData.sections.filter((s: ContentSection) => s.column_id !== columnId);
     
-    // If it was a new section, remove from newSections set
-    if (newSections.has(id)) {
-      const updatedNewSections = new Set(newSections);
-      updatedNewSections.delete(id);
-      setNewSections(updatedNewSections);
-    } else {
-      // Otherwise, mark for deletion
-      setDeletedSections(new Set(deletedSections).add(id));
-    }
+    // Update order_index for new sections
+    const reordered = newSections.map((s, idx) => ({ ...s, order_index: idx }));
     
-    setHasUnsavedChanges(true);
-  };
-
-  const handleSectionReorder = (newSections: ContentSection[]) => {
-    setSections(newSections);
-    setHasUnsavedChanges(true);
+    editorData.setSections([...otherSections, ...reordered]);
+    editorSave.setHasUnsavedChanges(true);
   };
 
   return {

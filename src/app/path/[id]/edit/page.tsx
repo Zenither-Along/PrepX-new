@@ -11,7 +11,10 @@ import { DynamicColumn } from "@/components/editor/DynamicColumn";
 import { AddColumnPlaceholder } from "@/components/editor/AddColumnPlaceholder";
 import { useEditorData } from "./hooks/useEditorData";
 import { useEditorSave } from "./hooks/useEditorSave";
-import { Column, ColumnItem } from "./types";
+import { useColumnHandlers } from "./hooks/useColumnHandlers";
+import { useColumnResizer } from "./hooks/useColumnResizer";
+import { useItemHandlers } from "./hooks/useItemHandlers";
+import { useSectionHandlers } from "./hooks/useSectionHandlers";
 
 export default function EditorPage() {
   const { id } = useParams();
@@ -31,103 +34,31 @@ export default function EditorPage() {
   const [selectedItems, setSelectedItems] = useState<Map<string, string>>(new Map()); // columnId -> itemId
   const [editingItemId, setEditingItemId] = useState<string | undefined>();
 
-  // Resize state
-  const [columnWidths, setColumnWidths] = useState<Map<string, number>>(new Map());
-  const [resizing, setResizing] = useState<{ columnId: string; startX: number; startWidth: number } | null>(null);
+  // Logic Hooks
+  const { 
+    handleAddColumn, 
+    handleUpdateBranchTitle, 
+    handleDeleteColumn 
+  } = useColumnHandlers(editorData, editorSave);
 
-  // ---------------------------------------------------------------------------
-  // Handlers
-  // ---------------------------------------------------------------------------
+  const { 
+    columnWidths, 
+    handleResizeStart 
+  } = useColumnResizer(editorData.columns);
 
-  const handleAddItem = (columnId: string) => {
-      const newItem: ColumnItem = {
-          id: `temp-${Date.now()}`,
-          column_id: columnId,
-          title: "New Item",
-          order_index: (editorData.items.get(columnId)?.length || 0)
-      };
-      
-      editorData.setItems(prev => {
-          const newMap = new Map(prev);
-          const list = newMap.get(columnId) || [];
-          newMap.set(columnId, [...list, newItem]);
-          return newMap;
-      });
-      
-      editorSave.setNewItems(prev => new Set(prev).add(newItem.id));
-      editorSave.setHasUnsavedChanges(true);
-  };
+  const { 
+    handleAddItem, 
+    handleItemDelete, 
+    handleItemEdit, 
+    onSelectItem 
+  } = useItemHandlers(editorData, editorSave, selectedItems, setSelectedItems);
 
-  const handleItemDelete = (columnId: string, itemId: string) => {
-      editorData.setItems(prev => {
-          const newMap = new Map(prev);
-          const list = newMap.get(columnId) || [];
-          newMap.set(columnId, list.filter(i => i.id !== itemId));
-          return newMap;
-      });
-      
-      editorSave.setDeletedItems(prev => new Set(prev).add(itemId));
-      editorSave.setHasUnsavedChanges(true);
-      
-      // If this item was selected, clear selection and truncate columns
-      if (selectedItems.get(columnId) === itemId) {
-          const newSelected = new Map(selectedItems);
-          newSelected.delete(columnId);
-          setSelectedItems(newSelected);
-          
-          const columnIndex = editorData.columns.findIndex(c => c.id === columnId);
-          const newColumns = editorData.columns.slice(0, columnIndex + 1);
-          editorData.setColumns(newColumns);
-      }
-  };
-
-  const handleItemEdit = (columnId: string, itemId: string, newTitle: string) => {
-      editorData.setItems(prev => {
-          const newMap = new Map(prev);
-          const list = newMap.get(columnId) || [];
-          const idx = list.findIndex(i => i.id === itemId);
-          if (idx !== -1) {
-              const newList = [...list];
-              newList[idx] = { ...newList[idx], title: newTitle };
-              newMap.set(columnId, newList);
-          }
-          return newMap;
-      });
-      editorSave.setHasUnsavedChanges(true);
-  };
-
-  const onSelectItem = async (columnId: string, itemId: string) => {
-      setSelectedItems(prev => new Map(prev).set(columnId, itemId));
-      
-      // Truncate columns after this one
-      const columnIndex = editorData.columns.findIndex(c => c.id === columnId);
-      const newColumns = editorData.columns.slice(0, columnIndex + 1);
-      editorData.setColumns(newColumns);
-      
-      // Try to fetch child column
-      await editorData.fetchChildColumn(itemId);
-  };
-
-  const handleAddColumn = (parentItemId: string | null, type: 'branch' | 'dynamic') => {
-      // Create a temporary column
-      const newColumn: Column = {
-          id: `temp-col-${Date.now()}`,
-          path_id: editorData.path!.id,
-          parent_item_id: parentItemId,
-          type: type === 'dynamic' ? 'content' : 'branch', // Map dynamic -> content
-          title: type === 'dynamic' ? 'Content' : 'New Branch',
-          order_index: 0
-      };
-      
-      editorData.setColumns(prev => [...prev, newColumn]);
-      editorSave.setNewColumns(prev => new Set(prev).add(newColumn.id));
-      editorSave.setHasUnsavedChanges(true);
-      
-      // If it's a branch, initialize empty items
-      if (newColumn.type === 'branch') {
-          editorData.setItems(prev => new Map(prev).set(newColumn.id, []));
-      }
-  };
+  const { 
+    handleAddSection, 
+    handleUpdateSection, 
+    handleDeleteSection, 
+    handleSectionReorder 
+  } = useSectionHandlers(editorData, editorSave);
 
   // Initialize root column if missing
   useEffect(() => {
@@ -135,83 +66,6 @@ export default function EditorPage() {
           handleAddColumn(null, 'branch');
       }
   }, [editorData.loadingData, editorData.columns.length, editorData.path]);
-
-  const handleUpdateBranchTitle = (columnId: string, newTitle: string) =>{
-      // Find the column
-      const column = editorData.columns.find(c => c.id === columnId);
-      if (!column) return;
-      
-      // If this column has a parent item, update the item's title
-      if (column.parent_item_id) {
-          // Find which column contains this item
-          for (const [colId, items] of editorData.items.entries()) {
-              const itemIndex = items.findIndex(item => item.id === column.parent_item_id);
-              if (itemIndex !== -1) {
-                  const updatedItems = [...items];
-                  updatedItems[itemIndex] = { ...updatedItems[itemIndex], title: newTitle };
-                  editorData.setItems(prev => new Map(prev).set(colId, updatedItems));
-                  break;
-              }
-          }
-      }
-      
-      // Also update the column title
-      const index = editorData.columns.findIndex(c => c.id === columnId);
-      if (index !== -1) {
-          const newCols = [...editorData.columns];
-          newCols[index] = { ...newCols[index], title: newTitle };
-          editorData.setColumns(newCols);
-      }
-      
-      editorSave.setHasUnsavedChanges(true);
-  };
-
-  // Section Handlers
-  const handleAddSection = (columnId: string, type: 'heading' | 'paragraph' | 'image' | 'video' | 'code') => {
-      const newSection = {
-          id: `temp-${Date.now()}`,
-          column_id: columnId,
-          type,
-          content: type === 'heading' || type === 'paragraph' ? { text: '' } : { url: '' },
-          order_index: editorData.sections.filter(s => s.column_id === columnId).length
-      };
-      
-      editorData.setSections(prev => [...prev, newSection]);
-      editorSave.setNewSections(prev => new Set(prev).add(newSection.id));
-      editorSave.setHasUnsavedChanges(true);
-  };
-
-  const handleUpdateSection = (sectionId: string, content: any) => {
-      editorData.setSections(prev => prev.map(s => s.id === sectionId ? { ...s, content } : s));
-      editorSave.setHasUnsavedChanges(true);
-  };
-
-  const handleDeleteSection = (sectionId: string) => {
-      editorData.setSections(prev => prev.filter(s => s.id !== sectionId));
-      editorSave.setDeletedSections(prev => new Set(prev).add(sectionId));
-      editorSave.setHasUnsavedChanges(true);
-  };
-
-  const handleDeleteColumn = (columnId: string) => {
-      // Remove from columns
-      editorData.setColumns(prev => prev.filter(c => c.id !== columnId));
-      
-      // Track for database deletion
-      editorSave.setDeletedColumns(prev => new Set(prev).add(columnId));
-      editorSave.setHasUnsavedChanges(true);
-  };
-
-  const handleSectionReorder = (columnId: string, newSections: any[]) => {
-      // Filter out sections not in this column
-      const otherSections = editorData.sections.filter(s => s.column_id !== columnId);
-      
-      // Update order_index for new sections
-      const reordered = newSections.map((s, idx) => ({ ...s, order_index: idx }));
-      
-      editorData.setSections([...otherSections, ...reordered]);
-      editorSave.setHasUnsavedChanges(true);
-  };
-
 
   // Prevent accidental navigation with unsaved changes
   useEffect(() => {
@@ -226,60 +80,21 @@ export default function EditorPage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [editorSave.hasUnsavedChanges]);
 
-  // Resize handlers
-  const handleResizeStart = (e: React.MouseEvent, columnId: string, currentWidth: number) => {
-    e.preventDefault();
-    setResizing({ columnId, startX: e.clientX, startWidth: currentWidth });
-  };
-
-  useEffect(() => {
-    if (!resizing) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const delta = e.clientX - resizing.startX;
-      const newWidth = resizing.startWidth + delta;
-      
-      // Find column to get type for constraints
-      const column = editorData.columns.find(c => c.id === resizing.columnId);
-      if (!column) return;
-      
-      // Apply constraints based on column type
-      const minWidth = 200;
-      const maxWidth = column.type === 'branch' ? 600 : 1200;
-      const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
-      
-      setColumnWidths(prev => new Map(prev).set(resizing.columnId, constrainedWidth));
-    };
-
-    const handleMouseUp = () => {
-      setResizing(null);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [resizing, editorData.columns]);
-
-
   if (editorData.loading) return <div className="flex h-screen items-center justify-center">Loading Editor...</div>;
   if (!editorData.path) return <div className="flex h-screen items-center justify-center">Path not found</div>;
 
   return (
-    <div className="flex h-screen flex-col bg-white text-black">
+    <div className="flex h-screen flex-col bg-background text-foreground">
       {/* Editor Navigation Bar */}
-      <header className="flex h-20 flex-col justify-center border-b border-gray-100 px-4">
+      <header className="flex h-20 flex-col justify-center border-b border-border px-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4 flex-1 min-w-0">
-            <Button variant="ghost" size="icon" asChild className="hover:bg-gray-100 shrink-0">
+            <Button variant="ghost" size="icon" asChild className="hover:bg-accent hover:text-accent-foreground shrink-0">
               <Link href="/">
                 <ArrowLeft className="h-5 w-5" />
               </Link>
             </Button>
-            <div className="h-6 w-px bg-gray-200 shrink-0" />
+            <div className="h-6 w-px bg-border shrink-0" />
             <div className="flex flex-col min-w-0 flex-1">
               <input
                 type="text"
@@ -307,7 +122,7 @@ export default function EditorPage() {
       </header>
 
       {/* Main Canvas */}
-      <main className="flex-1 overflow-x-auto overflow-y-hidden bg-gray-50">
+      <main className="flex-1 overflow-x-auto overflow-y-hidden bg-muted/30">
         <div className="flex h-full gap-4 px-2">
           {/* Render all active columns */}
           {editorData.columns.map((col, index) => {

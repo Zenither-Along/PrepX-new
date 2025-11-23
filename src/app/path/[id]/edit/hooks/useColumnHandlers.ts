@@ -1,0 +1,72 @@
+import { Column } from "../types";
+
+export function useColumnHandlers(
+  editorData: any,
+  editorSave: any
+) {
+  const handleAddColumn = (parentItemId: string | null, type: 'branch' | 'dynamic') => {
+    // Create a temporary column
+    const newColumn: Column = {
+      id: `temp-col-${Date.now()}`,
+      path_id: editorData.path!.id,
+      parent_item_id: parentItemId,
+      type: type === 'dynamic' ? 'content' : 'branch', // Map dynamic -> content
+      title: type === 'dynamic' ? 'Content' : 'New Branch',
+      order_index: 0
+    };
+    
+    editorData.setColumns((prev: Column[]) => [...prev, newColumn]);
+    editorSave.setNewColumns((prev: Set<string>) => new Set(prev).add(newColumn.id));
+    editorSave.setHasUnsavedChanges(true);
+    
+    // If it's a branch, initialize empty items
+    if (newColumn.type === 'branch') {
+      editorData.setItems((prev: Map<string, any[]>) => new Map(prev).set(newColumn.id, []));
+    }
+  };
+
+  const handleUpdateBranchTitle = (columnId: string, newTitle: string) => {
+    // Find the column
+    const column = editorData.columns.find((c: Column) => c.id === columnId);
+    if (!column) return;
+    
+    // If this column has a parent item, update the item's title
+    if (column.parent_item_id) {
+      // Find which column contains this item
+      for (const [colId, items] of editorData.items.entries()) {
+        const itemIndex = items.findIndex((item: any) => item.id === column.parent_item_id);
+        if (itemIndex !== -1) {
+          const updatedItems = [...items];
+          updatedItems[itemIndex] = { ...updatedItems[itemIndex], title: newTitle };
+          editorData.setItems((prev: Map<string, any[]>) => new Map(prev).set(colId, updatedItems));
+          break;
+        }
+      }
+    }
+    
+    // Also update the column title
+    const index = editorData.columns.findIndex((c: Column) => c.id === columnId);
+    if (index !== -1) {
+      const newCols = [...editorData.columns];
+      newCols[index] = { ...newCols[index], title: newTitle };
+      editorData.setColumns(newCols);
+    }
+    
+    editorSave.setHasUnsavedChanges(true);
+  };
+
+  const handleDeleteColumn = (columnId: string) => {
+    // Remove from columns
+    editorData.setColumns((prev: Column[]) => prev.filter((c: Column) => c.id !== columnId));
+    
+    // Track for database deletion
+    editorSave.setDeletedColumns((prev: Set<string>) => new Set(prev).add(columnId));
+    editorSave.setHasUnsavedChanges(true);
+  };
+
+  return {
+    handleAddColumn,
+    handleUpdateBranchTitle,
+    handleDeleteColumn
+  };
+}

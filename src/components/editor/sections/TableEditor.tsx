@@ -47,18 +47,18 @@ export function TableEditor({ content, onChange }: TableEditorProps) {
   
   return (
     <div className="space-y-2">
-      <label className="block text-xs font-medium text-gray-500">Table</label>
-      <div className="rounded-lg border border-gray-200 bg-white p-4">
+      <label className="block text-xs font-medium text-muted-foreground">Table</label>
+      <div className="rounded-lg border border-border bg-card p-4">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             {/* Column delete buttons header */}
             <thead>
               <tr>
                 {tableData[0]?.map((_: any, colIndex: number) => (
-                  <th key={colIndex} className="border border-gray-300 bg-gray-50 p-1">
+                  <th key={colIndex} className="border border-border bg-muted/50 p-1">
                     <button
                       onClick={() => deleteColumn(colIndex)}
-                      className="w-full text-gray-400 hover:text-red-500 transition-colors p-1"
+                      className="w-full text-muted-foreground hover:text-destructive transition-colors p-1 cursor-pointer"
                       title="Delete column"
                     >
                       <Trash2 className="h-4 w-4 mx-auto" />
@@ -72,7 +72,7 @@ export function TableEditor({ content, onChange }: TableEditorProps) {
               {tableData.map((row: string[], rowIndex: number) => (
                 <tr key={rowIndex}>
                   {row.map((cell, colIndex) => (
-                    <td key={colIndex} className="border border-gray-300 p-0">
+                    <td key={colIndex} className="border border-border p-0">
                       <Input
                         value={cell}
                         onChange={(e) => updateCell(rowIndex, colIndex, e.target.value)}
@@ -85,7 +85,7 @@ export function TableEditor({ content, onChange }: TableEditorProps) {
                   <td className="border-0 pl-2 text-center">
                     <button
                       onClick={() => deleteRow(rowIndex)}
-                      className="text-gray-400 hover:text-red-500 transition-colors"
+                      className="text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
                       title="Delete row"
                     >
                       <Trash2 className="h-4 w-4" />

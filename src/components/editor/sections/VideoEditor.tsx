@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useState, useRef, useEffect } from "react";
 
 interface VideoEditorProps {
   content: any;
@@ -18,18 +19,32 @@ const getEmbedUrl = (url: string) => {
 };
 
 export function VideoEditor({ content, onChange }: VideoEditorProps) {
+  const [isResizing, setIsResizing] = useState(false);
+  const [localSize, setLocalSize] = useState({ width: 0, height: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const animationFrameRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!isResizing) {
+      setLocalSize({
+        width: content.width || 0,
+        height: content.height || 0
+      });
+    }
+  }, [content.width, content.height, isResizing]);
+
   return (
-    <div className="space-y-2">
-      <label className="block text-xs font-medium text-gray-500">Video</label>
+    <div className="space-y-2" ref={containerRef}>
+      <label className="block text-xs font-medium text-muted-foreground">Video</label>
       {content.url ? (
-        <div className="relative group/video inline-block">
+        <div className="relative group/video inline-block max-w-full">
           <div 
             className="relative rounded-lg border border-gray-200 bg-black overflow-hidden"
             style={{ 
-              width: content.width ? `${content.width}px` : '100%',
-              height: content.height ? `${content.height}px` : 'auto',
+              width: isResizing && localSize.width ? `${localSize.width}px` : (content.width ? `${content.width}px` : '100%'),
+              height: isResizing && localSize.height ? `${localSize.height}px` : (content.height ? `${content.height}px` : 'auto'),
               maxWidth: '100%',
-              aspectRatio: '16/9'
+              aspectRatio: isResizing || content.width ? 'auto' : '16/9'
             }}
           >
             {content.isLocalFile ? (
@@ -52,29 +67,60 @@ export function VideoEditor({ content, onChange }: VideoEditorProps) {
               onMouseDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                setIsResizing(true);
+
                 const startX = e.clientX;
                 const startY = e.clientY;
                 const startWidth = e.currentTarget.parentElement?.offsetWidth || 0;
                 const startHeight = e.currentTarget.parentElement?.offsetHeight || 0;
+                const maxWidth = containerRef.current?.offsetWidth || 1000;
+
+                // Initialize local size
+                setLocalSize({ width: startWidth, height: startHeight });
 
                 const handleMouseMove = (moveEvent: MouseEvent) => {
-                  const newWidth = startWidth + (moveEvent.clientX - startX);
-                  const newHeight = startHeight + (moveEvent.clientY - startY);
-                  
-                  onChange({ 
-                    ...content, 
-                    width: Math.max(200, newWidth),
-                    height: Math.max(112, newHeight)
+                  if (animationFrameRef.current) {
+                    cancelAnimationFrame(animationFrameRef.current);
+                  }
+
+                  animationFrameRef.current = requestAnimationFrame(() => {
+                    const newWidth = startWidth + (moveEvent.clientX - startX);
+                    const newHeight = startHeight + (moveEvent.clientY - startY);
+                    
+                    // Constrain width to parent container and min width
+                    const constrainedWidth = Math.min(Math.max(200, newWidth), maxWidth);
+                    const constrainedHeight = Math.max(112, newHeight);
+
+                    setLocalSize({ 
+                      width: constrainedWidth,
+                      height: constrainedHeight
+                    });
                   });
                 };
 
-                const handleMouseUp = () => {
+                const handleMouseUpWithCommit = (upEvent: MouseEvent) => {
                   document.removeEventListener('mousemove', handleMouseMove);
-                  document.removeEventListener('mouseup', handleMouseUp);
+                  document.removeEventListener('mouseup', handleMouseUpWithCommit);
+                  if (animationFrameRef.current) {
+                    cancelAnimationFrame(animationFrameRef.current);
+                  }
+
+                  const finalWidth = startWidth + (upEvent.clientX - startX);
+                  const finalHeight = startHeight + (upEvent.clientY - startY);
+                  
+                  const constrainedWidth = Math.min(Math.max(200, finalWidth), maxWidth);
+                  const constrainedHeight = Math.max(112, finalHeight);
+
+                  setIsResizing(false);
+                  onChange({ 
+                    ...content, 
+                    width: constrainedWidth,
+                    height: constrainedHeight
+                  });
                 };
 
                 document.addEventListener('mousemove', handleMouseMove);
-                document.addEventListener('mouseup', handleMouseUp);
+                document.addEventListener('mouseup', handleMouseUpWithCommit);
               }}
             >
               <div className="absolute bottom-1 right-1 h-3 w-3 rounded-br bg-blue-500/50" />
@@ -84,14 +130,14 @@ export function VideoEditor({ content, onChange }: VideoEditorProps) {
           <Button 
             variant="outline" 
             size="sm" 
-            className="absolute top-2 right-2 bg-white opacity-0 group-hover/video:opacity-100 transition-opacity z-10"
+            className="absolute top-2 right-2 bg-card opacity-0 group-hover/video:opacity-100 transition-opacity z-10"
             onClick={() => onChange({ ...content, url: "", width: undefined, height: undefined })}
           >
             Change
           </Button>
         </div>
       ) : (
-        <div className="rounded-lg border border-gray-200 bg-white p-6 space-y-3">
+        <div className="rounded-lg border border-border bg-card p-6 space-y-3">
           <div className="flex gap-2">
             <Button 
               variant="outline" 

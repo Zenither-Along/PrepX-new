@@ -95,15 +95,15 @@ export function DynamicColumn({
   return (
     <div 
       ref={columnRef}
-      className="flex h-full shrink-0 flex-col rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-75"
+      className="flex h-full shrink-0 flex-col rounded-xl border border-border bg-card shadow-sm transition-all duration-75"
       style={{ width: `${width}px` }}
     >
-      <div className="flex items-center justify-between border-b border-gray-100 p-4">
+      <div className="flex items-center justify-between border-b border-border p-4">
         <input
           type="text"
           value={title}
           onChange={(e) => onTitleChange?.(e.target.value)}
-          className="flex-1 bg-transparent text-lg font-bold placeholder-gray-300 focus:outline-none"
+          className="flex-1 bg-transparent text-lg font-bold placeholder-muted-foreground focus:outline-none"
           placeholder="Content Title"
         />
         <div className="flex items-center gap-2">
@@ -128,7 +128,15 @@ export function DynamicColumn({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
+      <div 
+        className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setSelectedSectionId(null);
+            setEditingSectionId(null);
+          }
+        }}
+      >
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -139,7 +147,7 @@ export function DynamicColumn({
             strategy={verticalListSortingStrategy}
           >
             {sections.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center text-gray-400">
+              <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
                 <p>No content yet.</p>
                 <p className="text-sm">Click "Add Section" to start writing.</p>
               </div>
@@ -170,9 +178,9 @@ export function DynamicColumn({
       </div>
 
       {/* Fixed bottom section for Add Section button */}
-      <div className="flex h-16 items-center justify-end border-t border-gray-100 px-4">
+      <div className="flex h-16 items-center justify-end border-t border-border px-4">
         <SectionPalette onSelect={onSectionAdd}>
-          <Button size="sm" className="bg-black text-white hover:bg-gray-800">
+          <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
             <Plus className="mr-2 h-4 w-4" />
             Add Section
           </Button>
