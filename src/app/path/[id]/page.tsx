@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Pencil, MessageSquare } from "lucide-react";
+import { ArrowLeft, Pencil, MessageSquare, Star } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
@@ -213,7 +213,10 @@ export default function ViewPathPage() {
             </Link>
           </Button>
           <div className="h-6 w-px bg-border" />
-          <h1 className="text-lg font-bold">{path.title}</h1>
+          <h1 className="text-lg font-bold flex items-center gap-2">
+            {path.is_major && <Star className="h-5 w-5 text-yellow-500" />}
+            {path.title}
+          </h1>
         </div>
         <Button size="sm" asChild className="bg-black text-white hover:bg-gray-800">
           <Link href={`/path/${id}/edit`} className="flex items-center gap-2">

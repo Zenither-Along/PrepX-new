@@ -354,6 +354,59 @@ export async function createChildColumn(pathId: string, parentItemId: string | n
       console.error("Error creating child column:", error);
       throw new Error(error.message);
     }
+// ... existing code ...
     console.log("Child column created:", data);
     return data;
   }
+
+export async function setMajorPath(pathId: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const supabase = createSupabaseClient();
+
+  // 1. Unset major for all paths of this user
+  const { error: unsetError } = await supabase
+    .from("learning_paths")
+    .update({ is_major: false })
+    .eq("user_id", userId);
+
+  if (unsetError) {
+    console.error("Error unsetting major paths:", unsetError);
+    throw new Error(unsetError.message);
+  }
+
+  // 2. Set the new major path
+  const { error: setError } = await supabase
+    .from("learning_paths")
+    .update({ is_major: true })
+    .eq("id", pathId)
+    .eq("user_id", userId);
+
+  if (setError) {
+    console.error("Error setting major path:", setError);
+    throw new Error(setError.message);
+  }
+  
+  revalidatePath("/");
+}
+
+export async function unsetMajorPath(pathId: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const supabase = createSupabaseClient();
+
+  const { error } = await supabase
+    .from("learning_paths")
+    .update({ is_major: false })
+    .eq("id", pathId)
+    .eq("user_id", userId);
+
+  if (error) {
+    console.error("Error unsetting major path:", error);
+    throw new Error(error.message);
+  }
+  
+  revalidatePath("/");
+}

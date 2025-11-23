@@ -1,7 +1,7 @@
 "use client";
 
 import { UserButton, useUser, SignInButton } from "@clerk/nextjs";
-import { Plus, BookOpen, MoreVertical, Trash2, Pencil, Eye } from "lucide-react";
+import { Plus, BookOpen, MoreVertical, Trash2, Pencil, Eye, Star } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { db } from "@/lib/db";
-import { createPath, deletePath, updatePathSubtitle } from "@/lib/actions/actions";
+import { createPath, deletePath, updatePathSubtitle, setMajorPath, unsetMajorPath } from "@/lib/actions/actions";
 
 interface LearningPath {
   id: string;
@@ -41,6 +41,7 @@ interface LearningPath {
   created_at: string;
   branchCount?: number;
   itemCount?: number;
+  is_major?: boolean;
 }
 
 export default function Home() {
@@ -76,6 +77,7 @@ export default function Home() {
         .from("learning_paths")
         .select("*")
         .eq("user_id", user.id)
+        .order("is_major", { ascending: false })
         .order("created_at", { ascending: false });
 
       if (pathsError) throw pathsError;
@@ -168,6 +170,31 @@ export default function Home() {
     }
   };
 
+  const handleSetMajor = async (id: string) => {
+    try {
+      await setMajorPath(id);
+      // Optimistic update
+      setPaths(paths.map(p => ({
+        ...p,
+        is_major: p.id === id
+      })).sort((a, b) => (a.id === id ? -1 : b.id === id ? 1 : 0)));
+    } catch (error) {
+      console.error("Error setting major path:", error);
+      alert("Failed to set major path");
+    }
+  };
+
+  const handleUnsetMajor = async (id: string) => {
+    try {
+      await unsetMajorPath(id);
+      // Optimistic update
+      setPaths(paths.map(p => p.id === id ? { ...p, is_major: false } : p));
+    } catch (error) {
+      console.error("Error unsetting major path:", error);
+      alert("Failed to unset major path");
+    }
+  };
+
   if (!isLoaded) return null;
 
   if (!user) {
@@ -198,6 +225,11 @@ export default function Home() {
             <span className="text-lg font-bold tracking-tight">PrepX</span>
           </div>
           <div className="flex items-center gap-4">
+            <Link href="/major">
+              <Button variant="ghost" size="icon" className="text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50">
+                <Star className="h-5 w-5" />
+              </Button>
+            </Link>
             <ModeToggle />
             <UserButton afterSignOutUrl="/" />
           </div>
@@ -278,11 +310,12 @@ export default function Home() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {paths.map((path) => (
-              <Card key={path.id} className="group relative overflow-hidden border-border bg-card hover:shadow-md transition-shadow h-[155px] flex flex-col">
+              <Card key={path.id} className={`group relative overflow-hidden border-border bg-card hover:shadow-md transition-shadow h-[155px] flex flex-col ${path.is_major ? 'border-yellow-400 ring-1 ring-yellow-400 bg-yellow-50/10' : ''}`}>
                 <CardHeader className="pb-3 flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <Link href={`/path/${path.id}`} className="flex-1 min-w-0">
-                      <CardTitle className="text-base line-clamp-1 hover:text-blue-600 transition-colors cursor-pointer">
+                      <CardTitle className="text-base line-clamp-1 hover:text-blue-600 transition-colors cursor-pointer flex items-center gap-2">
+                        {path.is_major && <Star className="h-4 w-4 text-yellow-500" />}
                         {path.title}
                       </CardTitle>
                     </Link>
@@ -303,6 +336,17 @@ export default function Home() {
                             Edit
                           </Link>
                         </DropdownMenuItem>
+                        {path.is_major ? (
+                          <DropdownMenuItem onClick={() => handleUnsetMajor(path.id)}>
+                            <Star className="mr-2 h-4 w-4 fill-none" />
+                            Unset Major
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem onClick={() => handleSetMajor(path.id)}>
+                            <Star className="mr-2 h-4 w-4 text-yellow-500" />
+                            Set as Major
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(path.id)}>
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
