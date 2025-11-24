@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 const instrumentSans = Instrument_Sans({
   variable: "--font-instrument-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {

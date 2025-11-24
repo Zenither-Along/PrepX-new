@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
-export function Logo({ className = "", width = 120, height = 40 }: { className?: string; width?: number; height?: number }) {
+export function Logo({ className = "", width = 120, height = 40, textColor }: { className?: string; width?: number; height?: number; textColor?: string }) {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -25,7 +25,7 @@ export function Logo({ className = "", width = 120, height = 40 }: { className?:
           priority
         />
       </div>
-      <span className="text-2xl font-bold tracking-tight text-foreground">PrepX</span>
+      <span className={`text-2xl font-bold tracking-tight ${textColor || "text-foreground"}`}>PrepX</span>
     </div>
   );
 }

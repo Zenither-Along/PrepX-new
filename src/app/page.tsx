@@ -47,6 +47,8 @@ interface LearningPath {
   original_path_id?: string | null;
 }
 
+import { LandingPage } from "@/components/LandingPage";
+
 export default function Home() {
   const { user, isLoaded } = useUser();
   const [paths, setPaths] = useState<LearningPath[]>([]);
@@ -211,19 +213,7 @@ export default function Home() {
   if (!isLoaded) return null;
 
   if (!user) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h1 className="mb-4 text-2xl font-bold">Welcome to PrepX</h1>
-          <p className="mb-8 text-gray-600">Please sign in to manage your learning paths.</p>
-          <SignInButton mode="modal">
-            <Button className="bg-black text-white hover:bg-gray-800">
-              Sign In
-            </Button>
-          </SignInButton>
-        </div>
-      </div>
-    );
+    return <LandingPage />;
   }
 
   return (
