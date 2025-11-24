@@ -1,11 +1,12 @@
 "use client";
 
 import { UserButton, useUser, SignInButton } from "@clerk/nextjs";
-import { Plus, BookOpen, MoreVertical, Trash2, Pencil, Eye, Star } from "lucide-react";
+import { Plus, BookOpen, MoreVertical, Trash2, Pencil, Eye, Star, Globe, Share2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
+import { Logo } from "@/components/logo";
 import {
   Card,
   CardContent,
@@ -32,7 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { db } from "@/lib/db";
-import { createPath, deletePath, updatePathSubtitle, setMajorPath, unsetMajorPath } from "@/lib/actions/actions";
+import { createPath, deletePath, updatePathSubtitle, setMajorPath, unsetMajorPath, publishPath } from "@/lib/actions/actions";
 
 interface LearningPath {
   id: string;
@@ -42,6 +43,8 @@ interface LearningPath {
   branchCount?: number;
   itemCount?: number;
   is_major?: boolean;
+  is_public?: boolean;
+  original_path_id?: string | null;
 }
 
 export default function Home() {
@@ -195,6 +198,16 @@ export default function Home() {
     }
   };
 
+  const handlePublish = async (id: string, currentStatus: boolean) => {
+    try {
+      await publishPath(id, !currentStatus);
+      setPaths(paths.map(p => p.id === id ? { ...p, is_public: !currentStatus } : p));
+    } catch (error) {
+      console.error("Error publishing path:", error);
+      alert("Failed to update publication status");
+    }
+  };
+
   if (!isLoaded) return null;
 
   if (!user) {
@@ -219,12 +232,17 @@ export default function Home() {
       <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 items-center justify-between px-12">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <BookOpen className="h-4 w-4" />
-            </div>
-            <span className="text-lg font-bold tracking-tight">PrepX</span>
+            <Link href="/">
+              <Logo width={140} height={48} />
+            </Link>
           </div>
           <div className="flex items-center gap-4">
+            <Link href="/explore">
+              <Button variant="ghost" className="hidden sm:flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                <span>Explore</span>
+              </Button>
+            </Link>
             <Link href="/major">
               <Button variant="ghost" size="icon" className="text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50">
                 <Star className="h-5 w-5" />
@@ -345,6 +363,17 @@ export default function Home() {
                           <DropdownMenuItem onClick={() => handleSetMajor(path.id)}>
                             <Star className="mr-2 h-4 w-4 text-yellow-500" />
                             Set as Major
+                          </DropdownMenuItem>
+                        )}
+                        {path.original_path_id ? (
+                          <DropdownMenuItem disabled className="text-muted-foreground">
+                            <Share2 className="mr-2 h-4 w-4" />
+                            Cannot Publish (Clone)
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem onClick={() => handlePublish(path.id, !!path.is_public)}>
+                            <Share2 className="mr-2 h-4 w-4" />
+                            {path.is_public ? "Unpublish" : "Publish to Community"}
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(path.id)}>

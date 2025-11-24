@@ -1,5 +1,4 @@
-import { google } from "@ai-sdk/google";
-import { streamText } from "ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -7,10 +6,11 @@ export const maxDuration = 30;
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { messages, columnId, context } = body;
+    const { messages, columnId, context, webSearch } = body;
 
     // Check for API key
-    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+    const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    if (!apiKey) {
       return new Response(
         JSON.stringify({ error: "API key not configured. Please add GOOGLE_GENERATIVE_AI_API_KEY to .env.local" }), 
         { status: 500, headers: { "Content-Type": "application/json" } }
@@ -26,80 +26,66 @@ export async function POST(req: Request) {
     }
 
     // Create a system message with the column context
-    const systemMessage = `You are a helpful AI assistant. The user is viewing content about: ${JSON.stringify(context).substring(0, 200)}...
+    const systemInstruction = `You are a helpful AI assistant. The user is viewing content about: ${JSON.stringify(context).substring(0, 500)}...
 
 Be concise and helpful in your responses.`;
 
-    // Convert messages to the format expected by the AI SDK
-    const formattedMessages = messages.map((m: any) => ({
-      role: m.role,
-      content: m.content,
+    // Initialize Gemini
+    const genAI = new GoogleGenerativeAI(apiKey);
+    
+    // Configure tools based on webSearch flag
+    const tools = [];
+    if (webSearch) {
+      // @ts-ignore - googleSearch is valid at runtime but types might be missing
+      tools.push({ googleSearch: {} });
+    }
+
+    // Using gemini-flash-latest as verified in testing
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-flash-latest",
+      systemInstruction: systemInstruction,
+      tools: tools.length > 0 ? (tools as any) : undefined
+    });
+
+    // Convert messages to Gemini format
+    // Gemini expects history + last message. 
+    // However, the chat endpoint usually receives the full history including the last user message.
+    // We need to parse this.
+    
+    // Simple conversion:
+    // The last message is the prompt. The rest is history.
+    const lastMessage = messages[messages.length - 1];
+    const history = messages.slice(0, -1).map((m: any) => ({
+      role: m.role === 'user' ? 'user' : 'model',
+      parts: [{ text: m.content }]
     }));
 
-    console.log("About to call streamText with:", {
-      hasApiKey: !!process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-      apiKeyStart: process.env.GOOGLE_GENERATIVE_AI_API_KEY?.substring(0, 10),
-      messageCount: formattedMessages.length,
-      systemMessageLength: systemMessage.length
-    });
-   
-    const result = await streamText({
-      model: google("gemini-1.5-flash"),
-      system: systemMessage,
-      messages: formattedMessages,
+    console.log("Starting chat with Gemini...", {
+      historyLength: history.length,
+      lastMessageLength: lastMessage.content.length
     });
 
-    console.log("streamText result received");
+    const chat = model.startChat({
+      history: history,
+    });
+
+    const result = await chat.sendMessageStream(lastMessage.content);
     
-    // Get detailed response info
-    try {
-      const response = await result.response;
-      console.log("Gemini response:", JSON.stringify(response, null, 2));
-      
-      return new Response(
-        JSON.stringify({ 
-          debug: {
-            timestamp: new Date().toISOString(),
-            responseKeys: Object.keys(response),
-          },
-          message: "Gemini returned empty response. Common issues:\n1. Free tier quota exhausted - check https://aistudio.google.com/app/apikey\n2. Safety filters - try a simpler message\n3. Invalid/inactive API key - create a new one"
-        }), 
-        { 
-          status: 500,
-          headers: { "Content-Type": "application/json" }
-        }
-      );
-    } catch (e: any) {
-      return new Response(
-        JSON.stringify({ 
-          error: e.message,
-          suggestion: "Check your API key at https://aistudio.google.com/app/apikey and create a new one if needed"
-        }), 
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
-    }
-    
-    // Convert the async iterator to a ReadableStream
-    const encoder = new TextEncoder();
+    // Create a ReadableStream from the Gemini stream
     const stream = new ReadableStream({
       async start(controller) {
+        const encoder = new TextEncoder();
         try {
-          controller.enqueue(encoder.encode(`[DEBUG] API Key exists: ${!!process.env.GOOGLE_GENERATIVE_AI_API_KEY}\n`));
-          controller.enqueue(encoder.encode(`[DEBUG] Starting to iterate over textStream...\n`));
-          
-          let chunkCount = 0;
-          for await (const chunk of result.textStream) {
-            chunkCount++;
-            console.log(`Chunk ${chunkCount}:`, chunk);
-            controller.enqueue(encoder.encode(chunk));
+          for await (const chunk of result.stream) {
+            const chunkText = chunk.text();
+            
+            if (chunkText) {
+              controller.enqueue(encoder.encode(chunkText));
+            }
           }
-          
-          controller.enqueue(encoder.encode(`\n[DEBUG] Stream complete. Total chunks: ${chunkCount}\n`));
-          console.log(`Stream complete. Total chunks: ${chunkCount}`);
           controller.close();
-        } catch (error: any) {
-          console.error("Stream error:", error);
-          controller.enqueue(encoder.encode(`\n[ERROR] ${error.message}\n${error.stack}`));
+        } catch (error) {
+          console.error("Streaming error:", error);
           controller.error(error);
         }
       }
@@ -110,13 +96,13 @@ Be concise and helpful in your responses.`;
         'Content-Type': 'text/plain; charset=utf-8',
       },
     });
+
   } catch (error: any) {
     console.error("Chat API error:", error);
     return new Response(
       JSON.stringify({ 
         error: error.message || "Unknown error",
-        stack: error.stack,
-        type: error.constructor.name
+        stack: error.stack
       }), 
       { 
         status: 500,

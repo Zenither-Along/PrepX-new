@@ -72,7 +72,7 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
           })),
           columnId,
           context: contextData,
-          // webSearch: isWebSearchEnabled // Future implementation
+          webSearch: isWebSearchEnabled
         }),
       });
 

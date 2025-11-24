@@ -410,3 +410,180 @@ export async function unsetMajorPath(pathId: string) {
   
   revalidatePath("/");
 }
+
+export async function publishPath(pathId: string, isPublic: boolean, tags: string[] = []) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const supabase = createSupabaseClient();
+  
+  // Check if it's a clone
+  const { data: path } = await supabase
+    .from("learning_paths")
+    .select("original_path_id")
+    .eq("id", pathId)
+    .single();
+
+  if (path?.original_path_id) {
+    throw new Error("Cannot publish cloned paths");
+  }
+
+  const { error } = await supabase
+    .from("learning_paths")
+    .update({ 
+      is_public: isPublic,
+      tags: tags,
+    })
+    .eq("id", pathId)
+    .eq("user_id", userId);
+
+  if (error) {
+    console.error("Error publishing path:", error);
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/explore");
+}
+
+
+
+export async function clonePath(originalPathId: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const supabase = createSupabaseClient();
+
+  // 1. Fetch original path
+  const { data: originalPath, error: pathError } = await supabase
+    .from("learning_paths")
+    .select("*")
+    .eq("id", originalPathId)
+    .single();
+
+  if (pathError || !originalPath) throw new Error("Path not found");
+
+  // 2. Create new path
+  const { data: newPath, error: createError } = await supabase
+    .from("learning_paths")
+    .insert([{
+      user_id: userId,
+      title: `${originalPath.title} (Clone)`,
+      subtitle: originalPath.subtitle,
+      is_public: false, // Clones start as private
+      tags: originalPath.tags,
+      clones: 0,
+      likes: 0,
+      original_path_id: originalPathId // Track the source
+    }])
+    .select()
+    .single();
+
+  if (createError) throw new Error(createError.message);
+
+  // 3. Recursive cloning function
+  async function cloneColumnRecursively(originalColId: string, newPathId: string, newParentItemId: string | null) {
+    // Fetch original column
+    const { data: originalCol } = await supabase
+      .from("columns")
+      .select("*")
+      .eq("id", originalColId)
+      .single();
+      
+    if (!originalCol) return;
+
+    // Create new column
+    const { data: newCol, error: colError } = await supabase
+      .from("columns")
+      .insert([{
+        path_id: newPathId,
+        parent_item_id: newParentItemId,
+        type: originalCol.type,
+        title: originalCol.title,
+        order_index: originalCol.order_index
+      }])
+      .select()
+      .single();
+
+    if (colError) throw colError;
+
+    // If it's a branch, clone items
+    if (originalCol.type === 'branch') {
+      const { data: items } = await supabase
+        .from("column_items")
+        .select("*")
+        .eq("column_id", originalColId);
+
+      if (items) {
+        for (const item of items) {
+          // Create new item
+          const { data: newItem, error: itemError } = await supabase
+            .from("column_items")
+            .insert([{
+              column_id: newCol.id,
+              title: item.title,
+              order_index: item.order_index
+            }])
+            .select()
+            .single();
+            
+          if (itemError) throw itemError;
+
+          // Check for child columns of this item
+          const { data: childCols } = await supabase
+            .from("columns")
+            .select("id")
+            .eq("parent_item_id", item.id);
+            
+          if (childCols) {
+            for (const childCol of childCols) {
+              await cloneColumnRecursively(childCol.id, newPathId, newItem.id);
+            }
+          }
+        }
+      }
+    } 
+    // If it's content, clone sections
+    else if (originalCol.type === 'content') {
+      const { data: sections } = await supabase
+        .from("content_sections")
+        .select("*")
+        .eq("column_id", originalColId);
+
+      if (sections) {
+        const newSections = sections.map(s => ({
+          column_id: newCol.id,
+          type: s.type,
+          content: s.content,
+          order_index: s.order_index
+        }));
+        
+        if (newSections.length > 0) {
+          await supabase.from("content_sections").insert(newSections);
+        }
+      }
+    }
+  }
+
+  // 4. Start cloning from root columns
+  const { data: rootCols } = await supabase
+    .from("columns")
+    .select("id")
+    .eq("path_id", originalPathId)
+    .is("parent_item_id", null);
+
+  if (rootCols) {
+    for (const col of rootCols) {
+      await cloneColumnRecursively(col.id, newPath.id, null);
+    }
+  }
+
+  // 5. Increment clone count on original
+  await supabase
+    .from("learning_paths")
+    .update({ clones: (originalPath.clones || 0) + 1 })
+    .eq("id", originalPathId);
+
+  revalidatePath("/");
+  return newPath.id;
+}
