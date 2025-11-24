@@ -6,10 +6,12 @@ export const maxDuration = 30;
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { messages, columnId, context, webSearch } = body;
+    // Check for jsonMode
+    const { messages, columnId, context, webSearch, jsonMode } = body;
 
     // Check for API key
     const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    console.log("API Key present:", !!apiKey);
     if (!apiKey) {
       return new Response(
         JSON.stringify({ error: "API key not configured. Please add GOOGLE_GENERATIVE_AI_API_KEY to .env.local" }), 
@@ -26,16 +28,53 @@ export async function POST(req: Request) {
     }
 
     // Create a system message with the column context
-    const systemInstruction = `You are a helpful AI assistant. The user is viewing content about: ${JSON.stringify(context).substring(0, 500)}...
+    let systemInstruction = `You are a helpful AI assistant. The user is viewing content about: ${JSON.stringify(context).substring(0, 500)}...
 
 Be concise and helpful in your responses.`;
+
+    if (jsonMode) {
+      systemInstruction = `You are an AI assistant for a learning path editor.
+Your goal is to help the user create content by generating a structured JSON plan.
+
+CONTEXT:
+The user is currently viewing: ${JSON.stringify(context)}
+
+INSTRUCTIONS:
+1. Analyze the user's request and the current context.
+2. If the user wants to create items or sections, generate a JSON object with an "actions" array.
+3. If the user is just asking a question, answer normally (but still return valid JSON with a "message" field).
+
+JSON SCHEMA:
+{
+  "message": "A brief explanation of what you did or an answer to the question.",
+  "plan": {
+    "actions": [
+      {
+        "type": "create_item",
+        "title": "Title of the item"
+      },
+      {
+        "type": "create_section",
+        "sectionType": "heading" | "paragraph" | "code" | "image" | "video",
+        "content": "Content for the section (or code snippet)"
+      }
+    ]
+  }
+}
+
+IMPORTANT:
+- Return ONLY valid JSON.
+- Do not include markdown formatting (like \`\`\`json).
+- If creating items, suggest 3-5 relevant items unless specified otherwise.
+`;
+    }
 
     // Initialize Gemini
     const genAI = new GoogleGenerativeAI(apiKey);
     
     // Configure tools based on webSearch flag
     const tools = [];
-    if (webSearch) {
+    if (webSearch && !jsonMode) {
       // @ts-ignore - googleSearch is valid at runtime but types might be missing
       tools.push({ googleSearch: {} });
     }
@@ -44,7 +83,8 @@ Be concise and helpful in your responses.`;
     const model = genAI.getGenerativeModel({ 
       model: "gemini-flash-latest",
       systemInstruction: systemInstruction,
-      tools: tools.length > 0 ? (tools as any) : undefined
+      tools: tools.length > 0 ? (tools as any) : undefined,
+      generationConfig: jsonMode ? { responseMimeType: "application/json" } : undefined
     });
 
     // Convert messages to Gemini format
@@ -62,12 +102,29 @@ Be concise and helpful in your responses.`;
 
     console.log("Starting chat with Gemini...", {
       historyLength: history.length,
-      lastMessageLength: lastMessage.content.length
+      lastMessageLength: lastMessage.content.length,
+      jsonMode
     });
 
     const chat = model.startChat({
       history: history,
     });
+
+    if (jsonMode) {
+      try {
+        const result = await chat.sendMessage(lastMessage.content);
+        const response = await result.response;
+        const text = response.text();
+        
+        return new Response(text, {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (jsonError: any) {
+        console.error("JSON Mode Error:", jsonError);
+        // Fallback or rethrow with more info
+        throw new Error(`JSON Mode failed: ${jsonError.message}`);
+      }
+    }
 
     const result = await chat.sendMessageStream(lastMessage.content);
     

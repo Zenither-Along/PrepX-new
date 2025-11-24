@@ -1,7 +1,8 @@
 "use client";
 
-import { Plus, Trash2, MoreVertical } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { Plus, Trash2, MoreVertical, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,27 +10,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
-
-interface BranchItem {
-  id: string;
-  title: string;
-}
 
 interface BranchColumnProps {
   title: string;
-  items: BranchItem[];
+  items: any[];
   width: number;
-  onTitleChange: (title: string) => void;
+  onTitleChange: (newTitle: string) => void;
   onItemAdd: () => void;
-  onItemSelect: (id: string) => void;
-  onItemDelete?: (id: string) => void;
-  onItemEdit?: (id: string, newTitle: string) => void;
+  onItemSelect: (itemId: string) => void;
+  onItemDelete?: (itemId: string) => void;
+  onItemEdit?: (itemId: string, newTitle: string) => void;
   selectedItemId?: string;
   editingItemId?: string;
-  onEditStart?: (id: string) => void;
+  onEditStart?: (itemId: string) => void;
   onEditEnd?: () => void;
-  onDelete?: () => void; // Delete entire column
+  onDelete?: () => void;
+  onClose?: () => void;
 }
 
 export function BranchColumn({
@@ -46,28 +42,27 @@ export function BranchColumn({
   onEditStart,
   onEditEnd,
   onDelete,
+  onClose
 }: BranchColumnProps) {
-  const [lastClickTime, setLastClickTime] = useState<number>(0);
-  const [lastClickedId, setLastClickedId] = useState<string | undefined>();
-  const [editValue, setEditValue] = useState<string>("");
+  const [editValue, setEditValue] = useState("");
   const editInputRef = useRef<HTMLInputElement>(null);
+  
+  // Double click detection
+  const [lastClickTime, setLastClickTime] = useState(0);
+  const [lastClickedId, setLastClickedId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (editingItemId && editInputRef.current) {
+    if (editingItemId) {
       const item = items.find(i => i.id === editingItemId);
-      if (item) {
-        setEditValue(item.title);
-        editInputRef.current.focus();
-        editInputRef.current.select();
-      }
+      if (item) setEditValue(item.title);
+      setTimeout(() => editInputRef.current?.focus(), 0);
     }
   }, [editingItemId, items]);
 
   const handleItemClick = (itemId: string) => {
     const now = Date.now();
-    
     if (lastClickedId === itemId && now - lastClickTime < 300) {
-      // Double tap detected
+      // Double click
       onEditStart?.(itemId);
     } else {
       // Single tap
@@ -106,24 +101,31 @@ export function BranchColumn({
           className="flex-1 bg-transparent text-lg font-bold placeholder-muted-foreground focus:outline-none"
           placeholder="Branch Title"
         />
-        {onDelete && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem 
-                className="text-red-600" 
-                onClick={onDelete}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete Column
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+        <div className="flex items-center gap-2">
+          {onDelete && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 cursor-pointer">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem 
+                  className="text-red-600 cursor-pointer" 
+                  onClick={onDelete}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Column
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          {onClose && (
+             <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 cursor-pointer" onClick={onClose}>
+               <X className="h-4 w-4" />
+             </Button>
+          )}
+        </div>
       </div>
       
       <div className="flex-1 overflow-y-auto p-4">

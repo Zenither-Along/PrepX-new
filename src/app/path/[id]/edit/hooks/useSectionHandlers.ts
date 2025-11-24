@@ -6,7 +6,7 @@ export function useSectionHandlers(
 ) {
   const handleAddSection = (columnId: string, type: 'heading' | 'paragraph' | 'image' | 'video' | 'code' | 'subheading') => {
     const newSection = {
-      id: `temp-${Date.now()}`,
+      id: `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       column_id: columnId,
       type,
       content: type === 'heading' || type === 'paragraph' || type === 'subheading' ? { text: '' } : { url: '' },

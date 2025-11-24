@@ -2,7 +2,9 @@ import { Column } from "../types";
 
 export function useColumnHandlers(
   editorData: any,
-  editorSave: any
+  editorSave: any,
+  selectedItems: Map<string, string>,
+  setSelectedItems: (items: Map<string, string>) => void
 ) {
   const handleAddColumn = (parentItemId: string | null, type: 'branch' | 'dynamic') => {
     // Create a temporary column
@@ -64,9 +66,36 @@ export function useColumnHandlers(
     editorSave.setHasUnsavedChanges(true);
   };
 
+  const handleCloseColumn = (columnId: string) => {
+    // Find the column index
+    const columnIndex = editorData.columns.findIndex((c: Column) => c.id === columnId);
+    if (columnIndex === -1) return;
+
+    // Remove this column and all subsequent columns
+    const newColumns = editorData.columns.slice(0, columnIndex);
+    editorData.setColumns(newColumns);
+
+    // If this column had a parent item, deselect it
+    const column = editorData.columns[columnIndex];
+    if (column && column.parent_item_id) {
+       // Find the parent column of this item
+       const parentColumn = editorData.columns.find((c: Column) => {
+         const items = editorData.items.get(c.id) || [];
+         return items.some((i: any) => i.id === column.parent_item_id);
+       });
+       
+       if (parentColumn) {
+         const newSelected = new Map(selectedItems);
+         newSelected.delete(parentColumn.id);
+         setSelectedItems(newSelected);
+       }
+    }
+  };
+
   return {
     handleAddColumn,
     handleUpdateBranchTitle,
-    handleDeleteColumn
+    handleDeleteColumn,
+    handleCloseColumn
   };
 }

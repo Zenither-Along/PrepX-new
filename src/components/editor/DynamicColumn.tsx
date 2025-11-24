@@ -1,24 +1,14 @@
 "use client";
 
-import { Plus, MoreVertical, Trash2 } from "lucide-react";
-import { SectionPalette } from "./SectionPalette";
-import { ContentSection } from "./ContentSection";
-import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
+import { 
+  DndContext, 
+  closestCenter, 
+  KeyboardSensor, 
+  PointerSensor, 
+  useSensor, 
   useSensors,
-  DragEndEvent,
+  DragEndEvent
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -26,18 +16,29 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { Plus, MoreVertical, Trash2, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { SortableContentSection } from "./SortableContentSection";
+import { SectionPalette } from "./SectionPalette";
 
 interface DynamicColumnProps {
   title: string;
   sections: any[];
   width: number;
-  onTitleChange?: (title: string) => void;
+  onTitleChange?: (newTitle: string) => void;
   onSectionAdd: (type: string) => void;
-  onSectionChange: (id: string, content: any) => void;
-  onSectionDelete: (id: string) => void;
-  onSectionReorder: (sections: any[]) => void;
-  onDelete?: () => void; // Delete entire column
+  onSectionChange: (sectionId: string, content: string) => void;
+  onSectionDelete: (sectionId: string) => void;
+  onSectionReorder: (newSections: any[]) => void;
+  onDelete?: () => void;
+  onClose?: () => void;
 }
 
 export function DynamicColumn({
@@ -50,32 +51,26 @@ export function DynamicColumn({
   onSectionDelete,
   onSectionReorder,
   onDelete,
+  onClose
 }: DynamicColumnProps) {
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const columnRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        // Only activate drag if section is selected
-        delay: 0,
-        tolerance: 5,
-      },
-    }),
+    useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
-  // Handle click outside to deselect
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    function handleClickOutside(event: MouseEvent) {
       if (columnRef.current && !columnRef.current.contains(event.target as Node)) {
         setSelectedSectionId(null);
         setEditingSectionId(null);
       }
-    };
+    }
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -124,6 +119,11 @@ export function DynamicColumn({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          )}
+          {onClose && (
+             <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 cursor-pointer" onClick={onClose}>
+               <X className="h-4 w-4" />
+             </Button>
           )}
         </div>
       </div>

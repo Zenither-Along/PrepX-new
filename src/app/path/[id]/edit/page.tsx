@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { BranchColumn } from "@/components/editor/BranchColumn";
 import { DynamicColumn } from "@/components/editor/DynamicColumn";
 import { AddColumnPlaceholder } from "@/components/editor/AddColumnPlaceholder";
+import { AIAssistantColumn } from "@/components/editor/AIAssistantColumn";
+import { Sparkles } from "lucide-react";
 import { useEditorData } from "./hooks/useEditorData";
 import { useEditorSave } from "./hooks/useEditorSave";
 import { useColumnHandlers } from "./hooks/useColumnHandlers";
@@ -33,13 +35,15 @@ export default function EditorPage() {
 
   const [selectedItems, setSelectedItems] = useState<Map<string, string>>(new Map()); // columnId -> itemId
   const [editingItemId, setEditingItemId] = useState<string | undefined>();
+  const [showAIColumn, setShowAIColumn] = useState(false);
 
   // Logic Hooks
   const { 
     handleAddColumn, 
     handleUpdateBranchTitle, 
-    handleDeleteColumn 
-  } = useColumnHandlers(editorData, editorSave);
+    handleDeleteColumn,
+    handleCloseColumn
+  } = useColumnHandlers(editorData, editorSave, selectedItems, setSelectedItems);
 
   const { 
     columnWidths, 
@@ -116,6 +120,14 @@ export default function EditorPage() {
               disabled={editorSave.saving}
             >
               {editorSave.saving ? "Saving..." : "Save"}
+            </Button>
+            <Button
+              variant={showAIColumn ? "secondary" : "ghost"}
+              size="icon"
+              onClick={() => setShowAIColumn(!showAIColumn)}
+              className="ml-2"
+            >
+              <Sparkles className="h-5 w-5" />
             </Button>
           </div>
         </div>
@@ -215,6 +227,68 @@ export default function EditorPage() {
               }
               return null;
           })}
+          
+          {showAIColumn && (
+            <AIAssistantColumn
+              width={400}
+              onClose={() => setShowAIColumn(false)}
+              onExecutePlan={(plan) => {
+                console.log("[Execute Plan] Called with:", plan);
+                
+                if (plan && plan.actions && Array.isArray(plan.actions)) {
+                  console.log(`[Execute Plan] Processing ${plan.actions.length} actions`);
+                  plan.actions.forEach((action: any, idx: number) => {
+                    console.log(`[Action ${idx}] Type:`, action.type, "Data:", action);
+                    
+                    if (action.type === 'create_item') {
+                      const activeCol = editorData.columns[editorData.columns.length - 1];
+                      if (activeCol && activeCol.type === 'branch') {
+                         const newItem = {
+                            id: `ai-item-${Date.now()}-${Math.random()}`,
+                            column_id: activeCol.id,
+                            title: action.title,
+                            order_index: (editorData.items.get(activeCol.id)?.length || 0)
+                         };
+                         
+                         console.log("[Execute Plan] Creating item:", newItem);
+                         editorData.setItems((prev: Map<string, any[]>) => {
+                            const newMap = new Map(prev);
+                            const list = newMap.get(activeCol.id) || [];
+                            newMap.set(activeCol.id, [...list, newItem]);
+                            return newMap;
+                         });
+                         editorSave.setNewItems((prev: Set<string>) => new Set(prev).add(newItem.id));
+                      } else {
+                        console.log("[Execute Plan] Cannot create item - active column:", activeCol);
+                      }
+                    } else if (action.type === 'create_section') {
+                      const activeCol = editorData.columns[editorData.columns.length - 1];
+                      if (activeCol && activeCol.type === 'content') {
+                          console.log("[Execute Plan] Creating section:", action.sectionType);
+                          handleAddSection(activeCol.id, action.sectionType);
+                      } else {
+                        console.log("[Execute Plan] Cannot create section - active column:", activeCol);
+                      }
+                    }
+                  });
+                  editorSave.setHasUnsavedChanges(true);
+                } else {
+                  console.log("[Execute Plan] Invalid plan structure:", plan);
+                }
+              }}
+              context={{
+                pathTitle: editorData.path.title,
+                activeColumn: editorData.columns.length > 0 ? {
+                  id: editorData.columns[editorData.columns.length - 1].id,
+                  title: editorData.columns[editorData.columns.length - 1].title,
+                  type: editorData.columns[editorData.columns.length - 1].type as 'branch' | 'content',
+                  items: editorData.columns[editorData.columns.length - 1].type === 'branch' 
+                    ? editorData.items.get(editorData.columns[editorData.columns.length - 1].id) 
+                    : undefined
+                } : undefined
+              }}
+            />
+          )}
         </div>
       </main>
     </div>
