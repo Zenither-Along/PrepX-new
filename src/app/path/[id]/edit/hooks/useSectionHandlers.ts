@@ -4,12 +4,26 @@ export function useSectionHandlers(
   editorData: any,
   editorSave: any
 ) {
-  const handleAddSection = (columnId: string, type: 'heading' | 'paragraph' | 'image' | 'video' | 'code' | 'subheading') => {
+  const handleAddSection = (
+    columnId: string, 
+    type: 'heading' | 'paragraph' | 'image' | 'video' | 'code' | 'subheading',
+    initialContent?: string
+  ) => {
+    // Determine content based on type and initialContent
+    let content;
+    if (type === 'heading' || type === 'paragraph' || type === 'subheading') {
+      content = { text: initialContent || '' };
+    } else if (type === 'code') {
+      content = { code: initialContent || '', language: 'javascript' };
+    } else {
+      content = { url: initialContent || '' };
+    }
+    
     const newSection = {
       id: `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       column_id: columnId,
       type,
-      content: type === 'heading' || type === 'paragraph' || type === 'subheading' ? { text: '' } : { url: '' },
+      content,
       order_index: editorData.sections.filter((s: ContentSection) => s.column_id === columnId).length
     };
     

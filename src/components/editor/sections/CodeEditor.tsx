@@ -13,10 +13,10 @@ export function CodeEditor({ content, onChange }: CodeEditorProps) {
     <div className="rounded-lg bg-gray-900 p-4">
       <div className="mb-2 flex justify-between">
         <Input
-          value={content.language || "javascript"}
+          value={content.language || ""}
           onChange={(e) => onChange({ ...content, language: e.target.value })}
           className="w-32 border-none bg-transparent text-xs text-gray-400 focus-visible:ring-0"
-          placeholder="Language"
+          placeholder="javascript"
         />
       </div>
       <Textarea
