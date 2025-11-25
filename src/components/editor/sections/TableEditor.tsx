@@ -47,7 +47,7 @@ export function TableEditor({ content, onChange }: TableEditorProps) {
   
   return (
     <div className="space-y-2">
-      <label className="block text-xs font-medium text-muted-foreground">Table</label>
+
       <div className="rounded-lg border border-border bg-card p-4">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">

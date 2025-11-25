@@ -104,8 +104,8 @@ export function useEditorData(id: string | string[] | undefined) {
   // Fetch a child column when an item is selected (breadcrumb navigation)
   // ---------------------------------------------------------------------------
   const fetchChildColumn = async (parentItemId: string) => {
-    // Temporary client‑side IDs have no persisted column yet.
-    if (parentItemId.startsWith('temp-')) return null;
+    // Temporary client‑side IDs and AI-generated IDs have no persisted column yet.
+    if (parentItemId.startsWith('temp-') || parentItemId.startsWith('ai-item-')) return null;
     try {
       const { data: childColumn, error } = await db
         .from('columns')

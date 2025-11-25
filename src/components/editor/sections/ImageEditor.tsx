@@ -26,15 +26,19 @@ export function ImageEditor({ content, onChange }: ImageEditorProps) {
 
   return (
     <div className="space-y-2" ref={containerRef}>
-      <label className="block text-xs font-medium text-muted-foreground">Image</label>
+
       {content.url ? (
-        <div className="relative group/image inline-block max-w-full">
+        <div className="relative group/image block md:inline-block w-full md:w-auto max-w-full">
           <div 
-            className="relative rounded-lg border border-border bg-card overflow-hidden"
+            className="relative rounded-lg border border-border bg-card overflow-hidden w-full max-w-full"
             style={{ 
-              width: isResizing && localSize.width ? `${localSize.width}px` : (content.width ? `${content.width}px` : 'auto'),
-              height: isResizing && localSize.height ? `${localSize.height}px` : (content.height ? `${content.height}px` : 'auto'),
-              maxWidth: '100%'
+              // On mobile (< 768px), always use 100% width. On desktop, use saved dimensions
+              width: typeof window !== 'undefined' && window.innerWidth < 768 
+                ? '100%' 
+                : (isResizing && localSize.width ? `${localSize.width}px` : (content.width ? `${content.width}px` : 'auto')),
+              height: typeof window !== 'undefined' && window.innerWidth < 768
+                ? 'auto'
+                : (isResizing && localSize.height ? `${localSize.height}px` : (content.height ? `${content.height}px` : 'auto'))
             }}
           >
             <img 
@@ -57,6 +61,9 @@ export function ImageEditor({ content, onChange }: ImageEditorProps) {
                 const startWidth = e.currentTarget.parentElement?.offsetWidth || 0;
                 const startHeight = e.currentTarget.parentElement?.offsetHeight || 0;
                 const maxWidth = containerRef.current?.offsetWidth || 1000;
+                
+                // Calculate initial aspect ratio
+                const aspectRatio = startWidth / startHeight;
 
                 // Initialize local size
                 setLocalSize({ width: startWidth, height: startHeight });
@@ -68,11 +75,11 @@ export function ImageEditor({ content, onChange }: ImageEditorProps) {
 
                   animationFrameRef.current = requestAnimationFrame(() => {
                     const newWidth = startWidth + (moveEvent.clientX - startX);
-                    const newHeight = startHeight + (moveEvent.clientY - startY);
                     
                     // Constrain width to parent container and min width
                     const constrainedWidth = Math.min(Math.max(100, newWidth), maxWidth);
-                    const constrainedHeight = Math.max(100, newHeight);
+                    // Calculate height based on aspect ratio
+                    const constrainedHeight = constrainedWidth / aspectRatio;
 
                     setLocalSize({ 
                       width: constrainedWidth,
@@ -81,28 +88,6 @@ export function ImageEditor({ content, onChange }: ImageEditorProps) {
                   });
                 };
 
-                const handleMouseUp = () => {
-                  document.removeEventListener('mousemove', handleMouseMove);
-                  document.removeEventListener('mouseup', handleMouseUp);
-                  if (animationFrameRef.current) {
-                    cancelAnimationFrame(animationFrameRef.current);
-                  }
-                  
-                  setIsResizing(false);
-                  
-                  // Commit the final size
-                  // We need to read the latest localSize, but since we're in a closure,
-                  // we'll rely on the last state update or re-calculate.
-                  // Better to just commit the last calculated size from the event if possible,
-                  // but for simplicity let's use the state setter callback to get the latest value
-                  // actually, we can't easily access the latest state here without a ref.
-                  // Let's use a ref for the current size being dragged.
-                };
-                
-                // We need a way to commit the final size. 
-                // Let's modify handleMouseUp to use the last known size from a ref
-                // or just pass the final size to onChange.
-                
                 // Revised approach for mouseUp:
                 const handleMouseUpWithCommit = (upEvent: MouseEvent) => {
                    document.removeEventListener('mousemove', handleMouseMove);
@@ -112,10 +97,9 @@ export function ImageEditor({ content, onChange }: ImageEditorProps) {
                    }
                    
                    const finalWidth = startWidth + (upEvent.clientX - startX);
-                   const finalHeight = startHeight + (upEvent.clientY - startY);
                    
                    const constrainedWidth = Math.min(Math.max(100, finalWidth), maxWidth);
-                   const constrainedHeight = Math.max(100, finalHeight);
+                   const constrainedHeight = constrainedWidth / aspectRatio;
                    
                    setIsResizing(false);
                    onChange({ 

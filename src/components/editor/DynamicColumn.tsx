@@ -5,7 +5,8 @@ import {
   DndContext, 
   closestCenter, 
   KeyboardSensor, 
-  PointerSensor, 
+  MouseSensor,
+  TouchSensor,
   useSensor, 
   useSensors,
   DragEndEvent
@@ -16,7 +17,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Plus, MoreVertical, Trash2, X } from "lucide-react";
+import { Plus, MoreVertical, Trash2, X, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +40,9 @@ interface DynamicColumnProps {
   onSectionReorder: (newSections: any[]) => void;
   onDelete?: () => void;
   onClose?: () => void;
+  onBack?: () => void;
+  headerActions?: React.ReactNode;
+  fullScreen?: boolean; // For mobile full-screen mode
 }
 
 export function DynamicColumn({
@@ -51,30 +55,29 @@ export function DynamicColumn({
   onSectionDelete,
   onSectionReorder,
   onDelete,
-  onClose
+  onClose,
+  onBack,
+  headerActions,
+  fullScreen = false
 }: DynamicColumnProps) {
-  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
-  const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const columnRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (columnRef.current && !columnRef.current.contains(event.target as Node)) {
-        setSelectedSectionId(null);
-        setEditingSectionId(null);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -90,18 +93,27 @@ export function DynamicColumn({
   return (
     <div 
       ref={columnRef}
-      className="flex h-full shrink-0 flex-col rounded-xl border border-border bg-card shadow-sm transition-all duration-75"
-      style={{ width: `${width}px` }}
+      className={cn(
+        "flex h-full shrink-0 flex-col bg-card transition-all duration-75",
+        fullScreen ? "w-full" : "rounded-xl border border-border shadow-sm"
+      )}
+      style={fullScreen ? undefined : { width: `${width}px` }}
     >
-      <div className="flex items-center justify-between border-b border-border p-4">
+      <div className="flex items-center justify-between border-b border-border p-4 gap-2">
+        {onBack && (
+          <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        )}
         <input
           type="text"
           value={title}
           onChange={(e) => onTitleChange?.(e.target.value)}
-          className="flex-1 bg-transparent text-lg font-bold placeholder-muted-foreground focus:outline-none"
+          className="flex-1 bg-transparent text-lg font-bold placeholder-muted-foreground focus:outline-none min-w-0"
           placeholder="Content Title"
         />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
+          {headerActions}
           {onDelete && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -128,14 +140,12 @@ export function DynamicColumn({
         </div>
       </div>
 
+
         <div 
-          className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setSelectedSectionId(null);
-              setEditingSectionId(null);
-            }
-          }}
+          className={cn(
+            "flex-1 overflow-y-auto overflow-x-hidden no-scrollbar",
+            fullScreen ? "p-3 space-y-2" : "p-6 space-y-3"
+          )}
         >
           <DndContext
             sensors={sensors}
@@ -160,16 +170,6 @@ export function DynamicColumn({
                     content={section.content}
                     onChange={(newContent) => onSectionChange(section.id, newContent)}
                     onDelete={() => onSectionDelete(section.id)}
-                    isSelected={selectedSectionId === section.id}
-                    isEditing={editingSectionId === section.id}
-                    onSelect={() => {
-                      setSelectedSectionId(section.id);
-                      setEditingSectionId(null);
-                    }}
-                    onEdit={() => {
-                      setEditingSectionId(section.id);
-                      setSelectedSectionId(null);
-                    }}
                   />
                 ))
               )}
@@ -178,7 +178,10 @@ export function DynamicColumn({
         </div>
 
         {/* Fixed bottom section for Add Section button */}
-        <div className="flex h-16 items-center justify-end border-t border-border px-4">
+        <div className={cn(
+          "flex items-center justify-end border-t border-border",
+          fullScreen ? "h-14 px-3" : "h-16 px-4"
+        )}>
           <SectionPalette onSelect={onSectionAdd}>
             <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer">
               <Plus className="mr-2 h-4 w-4" />

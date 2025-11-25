@@ -33,6 +33,18 @@ export default function ViewPathPage() {
   // Track chat state for each content column
   const [openChats, setOpenChats] = useState<Set<string>>(new Set());
 
+  // Mobile navigation state
+  const [isMobile, setIsMobile] = useState(false);
+  const [activeColumnIndex, setActiveColumnIndex] = useState(0);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // ---------------------------------------------------
   // Data fetching
   // ---------------------------------------------------
@@ -159,6 +171,16 @@ export default function ViewPathPage() {
       
       // Fetch next column
       await fetchChildColumn(itemId);
+      
+      // Navigate to next column on mobile
+      if (isMobile) {
+        setActiveColumnIndex(columnIndex + 1);
+      }
+  };
+
+  // Mobile back navigation
+  const goBackColumn = () => {
+    setActiveColumnIndex(prev => Math.max(0, prev - 1));
   };
 
   // Resize handlers
@@ -205,29 +227,156 @@ export default function ViewPathPage() {
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
       {/* Header */}
-      <header className="flex h-16 items-center justify-between border-b border-border px-4">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon" asChild className="hover:bg-accent hover:text-accent-foreground">
+      <header className="flex h-14 md:h-16 items-center justify-between border-b border-border px-4">
+        <div className="flex items-center space-x-2 md:space-x-4 min-w-0">
+          <Button variant="ghost" size="icon" asChild className="hover:bg-accent hover:text-accent-foreground shrink-0">
             <Link href="/">
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>
-          <div className="h-6 w-px bg-border" />
-          <h1 className="text-lg font-bold flex items-center gap-2">
-            {path.is_major && <Star className="h-5 w-5 text-yellow-500" />}
+          <div className="h-6 w-px bg-border shrink-0" />
+          <h1 className="text-base md:text-lg font-bold flex items-center gap-2 truncate">
+            {path.is_major && <Star className="h-4 w-4 md:h-5 md:w-5 text-yellow-500 shrink-0" />}
             {path.title}
           </h1>
         </div>
-        <Button size="sm" asChild className="bg-black text-white hover:bg-gray-800">
+        <Button size="sm" asChild className="bg-black text-white hover:bg-gray-800 shrink-0">
           <Link href={`/path/${id}/edit`} className="flex items-center gap-2">
-            <Pencil className="h-4 w-4" /> Edit Path
+            <Pencil className="h-4 w-4" />
+            <span className="hidden md:inline">Edit Path</span>
           </Link>
         </Button>
       </header>
 
+
       {/* Main layout */}
-      <main className="flex flex-1 overflow-x-auto overflow-y-hidden gap-[5px]">
-        {columns.map((col, index) => {
+      <main className="flex flex-1 overflow-hidden">
+        {/* Mobile: Single column view */}
+        <div className="md:hidden flex-1 overflow-y-auto">
+          {columns[activeColumnIndex] && (() => {
+            const col = columns[activeColumnIndex];
+            const selectedItemId = selectedItems.get(col.id);
+            
+            if (col.type === 'branch') {
+              let title = col.title;
+              if (col.parent_item_id) {
+                for (const [, cItems] of items.entries()) {
+                  const parentItem = cItems.find(i => i.id === col.parent_item_id);
+                  if (parentItem) {
+                    title = parentItem.title;
+                    break;
+                  }
+                }
+              }
+              
+              return (
+                <div className="flex flex-col h-full bg-muted/30">
+                  {/* Header with back button */}
+                  <div className="p-3 border-b border-border flex items-center gap-2">
+                    {activeColumnIndex > 0 && (
+                      <Button variant="ghost" size="icon" onClick={goBackColumn} className="shrink-0">
+                        <ArrowLeft className="h-5 w-5" />
+                      </Button>
+                    )}
+                    <h2 className="text-xl font-bold flex-1">{title}</h2>
+                  </div>
+                  {/* Items area */}
+                  <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                    {(items.get(col.id) || []).map(item => (
+                      <button
+                        key={item.id}
+                        onClick={() => onSelectItem(col.id, item.id)}
+                        className={cn(
+                          "w-full rounded-lg px-4 py-4 text-left text-base font-medium transition-colors touch-target",
+                          selectedItemId === item.id ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm font-semibold" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                        )}
+                      >
+                        {item.title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            } else if (col.type === 'content') {
+              let title = col.title;
+              if (col.parent_item_id) {
+                for (const [, cItems] of items.entries()) {
+                  const found = cItems.find(i => i.id === col.parent_item_id);
+                  if (found) {
+                    title = found.title;
+                    break;
+                  }
+                }
+              }
+              
+              const colSections = sections.filter(s => s.column_id === col.id);
+              const isChatOpen = openChats.has(col.id);
+              
+              return (
+                <div className="flex flex-col h-full bg-muted/30">
+                  {/* Header with back button */}
+                  <div className="p-3 border-b border-border flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      {activeColumnIndex > 0 && (
+                        <Button variant="ghost" size="icon" onClick={goBackColumn} className="shrink-0">
+                          <ArrowLeft className="h-5 w-5" />
+                        </Button>
+                      )}
+                      <h2 className="text-xl font-bold truncate">{title}</h2>
+                    </div>
+                    <Button 
+                      variant={isChatOpen ? "default" : "ghost"} 
+                      size="icon" 
+                      className="h-8 w-8 shrink-0"
+                      onClick={() => {
+                        setOpenChats(prev => {
+                          const next = new Set(prev);
+                          if (next.has(col.id)) {
+                            next.delete(col.id);
+                          } else {
+                            next.add(col.id);
+                          }
+                          return next;
+                        });
+                      }}
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {/* Content area */}
+                  {!isChatOpen ? (
+                    <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                      {colSections.length === 0 ? (
+                        <p className="text-muted-foreground italic">No content in this section.</p>
+                      ) : (
+                        colSections.map(section => (
+                          <ContentRenderer key={section.id} type={section.type} content={section.content} />
+                        ))
+                      )}
+                    </div>
+                  ) : (
+                    <ChatColumn 
+                      columnId={col.id}
+                      contextData={colSections}
+                      onClose={() => {
+                        setOpenChats(prev => {
+                          const next = new Set(prev);
+                          next.delete(col.id);
+                          return next;
+                        });
+                      }}
+                    />
+                  )}
+                </div>
+              );
+            }
+            return null;
+          })()}
+        </div>
+
+        {/* Desktop: Horizontal scroll with all columns */}
+        <div className="hidden md:flex flex-1 overflow-x-auto overflow-y-hidden gap-[5px]">
+          {columns.map((col, index) => {
             const selectedItemId = selectedItems.get(col.id);
             
             if (col.type === 'branch') {
@@ -263,15 +412,6 @@ export default function ViewPathPage() {
                     </div>
                 );
             } else if (col.type === 'content') {
-                // Find the item that spawned this content column to get the title
-                // The parent item is in the previous column
-                // Actually, the column has a parent_item_id. We can find the item title from that.
-                // But we don't have easy access to all items in a flat list.
-                // We can iterate columns to find the item.
-                // Or just use the column title (which we set to 'Content' or the item title in the editor).
-                
-                // Let's try to find the parent item title if possible, or fallback to column title.
-                // We can search in the `items` map.
                 let title = col.title;
                 if (col.parent_item_id) {
                     for (const [cId, cItems] of items.entries()) {
@@ -348,7 +488,8 @@ export default function ViewPathPage() {
                 );
             }
             return null;
-        })}
+          })}
+        </div>
       </main>
     </div>
   );

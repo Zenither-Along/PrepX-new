@@ -10,7 +10,7 @@ interface LinkEditorProps {
 export function LinkEditor({ content, onChange }: LinkEditorProps) {
   return (
     <div className="space-y-2">
-      <label className="text-xs font-medium text-muted-foreground">Link Text</label>
+
       <div className="space-y-2">
         <Input
           placeholder="Link Title"

@@ -72,7 +72,7 @@ export function useItemHandlers(
     editorData.setColumns(newColumns);
     
     // Try to fetch child column
-    await editorData.fetchChildColumn(itemId);
+    return await editorData.fetchChildColumn(itemId);
   };
 
   return {

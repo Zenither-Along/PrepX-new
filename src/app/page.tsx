@@ -47,7 +47,7 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 items-center justify-between px-12">
+        <div className="mx-auto flex h-16 items-center justify-between px-4 md:px-12">
           <div className="flex items-center gap-2">
             <Link href="/">
               <Logo width={140} height={48} />
@@ -55,9 +55,9 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-4">
             <Link href="/explore">
-              <Button variant="ghost" className="hidden sm:flex items-center gap-2">
+              <Button variant="ghost" size="icon" className="md:w-auto md:px-4">
                 <Globe className="h-4 w-4" />
-                <span>Explore</span>
+                <span className="hidden md:inline ml-2">Explore</span>
               </Button>
             </Link>
             <Link href="/major">
@@ -72,10 +72,10 @@ export default function Home() {
       </nav>
 
       {/* Main Content */}
-      <main className="mx-auto px-12 py-12">
-        <div className="mb-8 flex items-end justify-between">
+      <main className="mx-auto px-4 py-6 md:px-12 md:py-12">
+        <div className="mb-6 md:mb-8 flex flex-col md:flex-row items-start md:items-end justify-between gap-4 md:gap-0">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">Hello, {user?.firstName || user?.username || 'there'}!</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">Hello, {user?.firstName || user?.username || 'there'}!</h1>
             <p className="mt-1 text-muted-foreground">Welcome to Your PrepX</p>
           </div>
           

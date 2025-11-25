@@ -1,7 +1,7 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { Trash2, GripVertical } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -22,10 +22,7 @@ interface ContentSectionProps {
   content: any;
   onChange: (content: any) => void;
   onDelete: () => void;
-  isSelected?: boolean;
-  isEditing?: boolean;
-  onSelect?: () => void;
-  onEdit?: () => void;
+  dragHandleProps?: any;
 }
 
 export function ContentSection({ 
@@ -34,39 +31,9 @@ export function ContentSection({
   content, 
   onChange, 
   onDelete,
-  isSelected = false,
-  isEditing = false,
-  onSelect,
-  onEdit,
+  dragHandleProps,
 }: ContentSectionProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const clickTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const clickCountRef = useRef(0);
-
-  const handleClick = (e: React.MouseEvent) => {
-    // Don't handle clicks on inputs or interactive elements
-    const target = e.target as HTMLElement;
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON') {
-      return;
-    }
-
-    clickCountRef.current += 1;
-
-    if (clickTimeoutRef.current) {
-      clearTimeout(clickTimeoutRef.current);
-    }
-
-    clickTimeoutRef.current = setTimeout(() => {
-      if (clickCountRef.current === 1) {
-        // Single click - select section
-        onSelect?.();
-      } else if (clickCountRef.current === 2) {
-        // Double click - enter edit mode
-        onEdit?.();
-      }
-      clickCountRef.current = 0;
-    }, 250);
-  };
 
   const renderEditor = () => {
     switch (type) {
@@ -99,35 +66,61 @@ export function ContentSection({
     }
   };
 
+  const getSectionLabel = () => {
+    switch (type) {
+      case "heading": return "Heading";
+      case "subheading": return "Subheading";
+      case "paragraph": return "Paragraph";
+      case "image": return "Image";
+      case "video": return "Video";
+      case "link": return "Link";
+      case "list": return "List";
+      case "code": return "Code";
+      case "qna": return "Q&A";
+      case "table": return "Table";
+      default: return type;
+    }
+  };
+
   return (
     <div 
-      className={cn(
-        "group relative flex items-start transition-all",
-        isSelected && "ring-2 ring-primary ring-offset-2 rounded-lg",
-        !isEditing && "cursor-pointer"
-      )}
+      className="group relative flex flex-col transition-all"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={!isEditing ? handleClick : undefined}
     >
-      <div className="flex-1 rounded-lg p-2 transition-colors hover:bg-muted/50">
+      {/* Drag handle bar */}
+      <div 
+        {...dragHandleProps}
+        className={cn(
+          "flex items-center justify-center w-full h-6 rounded-t cursor-grab active:cursor-grabbing transition-colors touch-none",
+          "hover:bg-muted/50",
+          // Always visible for touch devices, subtle by default
+          "bg-transparent" 
+        )}
+      >
+        <GripVertical className="h-4 w-4 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors rotate-90" />
+      </div>
+
+      {/* Content editor */}
+      <div className="flex-1 rounded-lg px-2 pb-2 transition-colors hover:bg-muted/50">
         {renderEditor()}
       </div>
 
+      {/* Delete button */}
       <div className={cn(
-        "absolute right-2 top-2 opacity-0 transition-opacity z-10",
-        (isHovered || isSelected) && "opacity-100"
+        "absolute right-2 top-1 opacity-0 transition-opacity z-20",
+        isHovered && "opacity-100"
       )}>
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-destructive bg-background/50 backdrop-blur-sm hover:bg-background/80"
+          className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-background/80"
           onClick={(e) => {
             e.stopPropagation();
             onDelete();
           }}
         >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="h-3 w-3" />
         </Button>
       </div>
     </div>

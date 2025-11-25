@@ -24,7 +24,6 @@ export function QnAEditor({ content, onChange }: QnAEditorProps) {
             {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </button>
           <span className="text-base">●</span>
-          <label className="text-sm font-semibold text-foreground">Question?</label>
         </div>
         <Input
           value={content.question || ""}

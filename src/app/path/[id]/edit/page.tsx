@@ -2,7 +2,7 @@
 
 import { useUser } from "@clerk/nextjs";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useEditorData } from "./hooks/useEditorData";
 import { useEditorSave } from "./hooks/useEditorSave";
 import { useColumnResizer } from "./hooks/useColumnResizer";
@@ -29,6 +29,23 @@ export default function EditorPage() {
   const [selectedItems, setSelectedItems] = useState<Map<string, string>>(new Map()); // columnId -> itemId
   const [editingItemId, setEditingItemId] = useState<string | undefined>();
   const [showAIColumn, setShowAIColumn] = useState(false);
+
+  // Mobile navigation state
+  const [isMobile, setIsMobile] = useState(false);
+  const [activeColumnIndex, setActiveColumnIndex] = useState(0);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Mobile back navigation
+  const goBackColumn = () => {
+    setActiveColumnIndex(prev => Math.max(0, prev - 1));
+  };
 
   const { 
     columnWidths, 
@@ -59,6 +76,10 @@ export default function EditorPage() {
         columnWidths={columnWidths}
         handleResizeStart={handleResizeStart}
         showAIColumn={showAIColumn}
+        isMobile={isMobile}
+        activeColumnIndex={activeColumnIndex}
+        setActiveColumnIndex={setActiveColumnIndex}
+        goBackColumn={goBackColumn}
       >
         <AIAssistantPanel 
           showAIColumn={showAIColumn} 

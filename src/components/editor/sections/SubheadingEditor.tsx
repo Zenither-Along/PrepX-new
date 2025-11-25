@@ -10,7 +10,7 @@ interface SubheadingEditorProps {
 export function SubheadingEditor({ content, onChange }: SubheadingEditorProps) {
   return (
     <div className="space-y-1">
-      <label className="text-xs font-medium text-muted-foreground">Sub-heading</label>
+
       <Textarea
         value={content.text || ""}
         onChange={(e) => {

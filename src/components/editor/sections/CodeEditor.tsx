@@ -2,6 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useEffect, useRef } from "react";
 
 interface CodeEditorProps {
   content: any;
@@ -9,6 +10,16 @@ interface CodeEditorProps {
 }
 
 export function CodeEditor({ content, onChange }: CodeEditorProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize on mount and when code changes
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [content.code]);
+
   return (
     <div className="rounded-lg bg-gray-900 p-4">
       <div className="mb-2 flex justify-between">
@@ -20,6 +31,7 @@ export function CodeEditor({ content, onChange }: CodeEditorProps) {
         />
       </div>
       <Textarea
+        ref={textareaRef}
         value={content.code || ""}
         onChange={(e) => {
           onChange({ ...content, code: e.target.value });

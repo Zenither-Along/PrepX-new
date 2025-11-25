@@ -1,6 +1,7 @@
 "use client";
 
 import { Textarea } from "@/components/ui/textarea";
+import { useEffect, useRef } from "react";
 
 interface ParagraphEditorProps {
   content: any;
@@ -8,10 +9,21 @@ interface ParagraphEditorProps {
 }
 
 export function ParagraphEditor({ content, onChange }: ParagraphEditorProps) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize on mount and when content changes
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [content.text]);
+
   return (
     <div className="space-y-1">
-      <label className="text-xs font-medium text-muted-foreground">Paragraph</label>
+
       <Textarea
+        ref={textareaRef}
         value={content.text || ""}
         onChange={(e) => {
           onChange({ ...content, text: e.target.value });

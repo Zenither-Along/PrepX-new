@@ -11,7 +11,7 @@ interface HeadingEditorProps {
 export function HeadingEditor({ content, onChange }: HeadingEditorProps) {
   return (
     <div className="space-y-1">
-      <label className="text-xs font-medium text-gray-500">Heading</label>
+
       <Textarea
         value={content.text || ""}
         onChange={(e) => {

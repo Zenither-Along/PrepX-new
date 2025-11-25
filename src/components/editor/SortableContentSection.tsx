@@ -10,30 +10,22 @@ interface SortableContentSectionProps {
   content: any;
   onChange: (content: any) => void;
   onDelete: () => void;
-  isSelected?: boolean;
-  isEditing?: boolean;
-  onSelect?: () => void;
-  onEdit?: () => void;
 }
 
 export function SortableContentSection({ 
   id, 
-  isSelected = false,
-  isEditing = false,
-  onSelect,
-  onEdit,
   ...props 
 }: SortableContentSectionProps) {
   const {
     attributes,
     listeners,
     setNodeRef,
+    setActivatorNodeRef,
     transform,
     transition,
     isDragging,
   } = useSortable({ 
     id,
-    disabled: !isSelected, // Only enable drag when selected
   });
 
   const style = {
@@ -48,15 +40,15 @@ export function SortableContentSection({
     <div 
       ref={setNodeRef} 
       style={style}
-      {...(isSelected ? { ...attributes, ...listeners } : {})}
     >
       <ContentSection 
         id={id} 
-        {...props} 
-        isSelected={isSelected}
-        isEditing={isEditing}
-        onSelect={onSelect}
-        onEdit={onEdit}
+        {...props}
+        dragHandleProps={{
+          ref: setActivatorNodeRef,
+          ...attributes,
+          ...listeners,
+        }}
       />
     </div>
   );

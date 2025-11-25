@@ -14,7 +14,7 @@ export function ListEditor({ content, onChange }: ListEditorProps) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-medium text-muted-foreground">List</label>
+
         <div className="flex gap-1 rounded-lg bg-muted p-1">
           <button
             onClick={() => onChange({ ...content, listType: 'unordered' })}

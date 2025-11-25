@@ -35,16 +35,20 @@ export function VideoEditor({ content, onChange }: VideoEditorProps) {
 
   return (
     <div className="space-y-2" ref={containerRef}>
-      <label className="block text-xs font-medium text-muted-foreground">Video</label>
+
       {content.url ? (
-        <div className="relative group/video inline-block max-w-full">
+        <div className="relative group/video block md:inline-block w-full md:w-auto max-w-full">
           <div 
-            className="relative rounded-lg border border-gray-200 bg-black overflow-hidden"
+            className="relative rounded-lg border border-gray-200 bg-black overflow-hidden w-full max-w-full"
             style={{ 
-              width: isResizing && localSize.width ? `${localSize.width}px` : (content.width ? `${content.width}px` : '100%'),
-              height: isResizing && localSize.height ? `${localSize.height}px` : (content.height ? `${content.height}px` : 'auto'),
-              maxWidth: '100%',
-              aspectRatio: isResizing || content.width ? 'auto' : '16/9'
+              // On mobile (< 768px), always use 100% width. On desktop, use saved dimensions
+              width: typeof window !== 'undefined' && window.innerWidth < 768 
+                ? '100%' 
+                : (isResizing && localSize.width ? `${localSize.width}px` : (content.width ? `${content.width}px` : '100%')),
+              height: typeof window !== 'undefined' && window.innerWidth < 768
+                ? 'auto'
+                : (isResizing && localSize.height ? `${localSize.height}px` : (content.height ? `${content.height}px` : 'auto')),
+              aspectRatio: (typeof window !== 'undefined' && window.innerWidth < 768) || !content.width ? '16/9' : 'auto'
             }}
           >
             {content.isLocalFile ? (
@@ -74,6 +78,9 @@ export function VideoEditor({ content, onChange }: VideoEditorProps) {
                 const startWidth = e.currentTarget.parentElement?.offsetWidth || 0;
                 const startHeight = e.currentTarget.parentElement?.offsetHeight || 0;
                 const maxWidth = containerRef.current?.offsetWidth || 1000;
+                
+                // Calculate initial aspect ratio
+                const aspectRatio = startWidth / startHeight;
 
                 // Initialize local size
                 setLocalSize({ width: startWidth, height: startHeight });
@@ -85,11 +92,11 @@ export function VideoEditor({ content, onChange }: VideoEditorProps) {
 
                   animationFrameRef.current = requestAnimationFrame(() => {
                     const newWidth = startWidth + (moveEvent.clientX - startX);
-                    const newHeight = startHeight + (moveEvent.clientY - startY);
                     
                     // Constrain width to parent container and min width
                     const constrainedWidth = Math.min(Math.max(200, newWidth), maxWidth);
-                    const constrainedHeight = Math.max(112, newHeight);
+                    // Calculate height based on aspect ratio
+                    const constrainedHeight = constrainedWidth / aspectRatio;
 
                     setLocalSize({ 
                       width: constrainedWidth,
@@ -106,10 +113,9 @@ export function VideoEditor({ content, onChange }: VideoEditorProps) {
                   }
 
                   const finalWidth = startWidth + (upEvent.clientX - startX);
-                  const finalHeight = startHeight + (upEvent.clientY - startY);
                   
                   const constrainedWidth = Math.min(Math.max(200, finalWidth), maxWidth);
-                  const constrainedHeight = Math.max(112, finalHeight);
+                  const constrainedHeight = constrainedWidth / aspectRatio;
 
                   setIsResizing(false);
                   onChange({ 
