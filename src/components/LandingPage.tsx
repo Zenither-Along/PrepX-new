@@ -12,19 +12,16 @@ import { Footer } from "@/components/landing/Footer";
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-white">
-      {/* Force light mode */}
-      <div className="light">
-        <LandingNav />
-        <HeroSection />
-        <FeaturesSection />
-        <UseCasesSection />
-        <HowItWorksSection />
-        <TestimonialsSection />
-        <FAQSection />
-        <CTASection />
-        <Footer />
-      </div>
+    <div className="min-h-screen bg-white text-gray-900" data-theme="light" style={{ colorScheme: 'light' }}>
+      <LandingNav />
+      <HeroSection />
+      <FeaturesSection />
+      <UseCasesSection />
+      <HowItWorksSection />
+      <TestimonialsSection />
+      <FAQSection />
+      <CTASection />
+      <Footer />
     </div>
   );
 }

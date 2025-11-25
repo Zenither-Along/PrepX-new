@@ -12,10 +12,10 @@ export function HowItWorksSection() {
     <section className="py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="mb-16 text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
             How It Works
           </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
+          <p className="mt-4 text-lg text-gray-600">
             Get started in minutes
           </p>
         </div>
@@ -30,7 +30,7 @@ export function HowItWorksSection() {
                   {index + 1}
                 </div>
                 <h3 className="mb-2 text-lg font-semibold">{step.title}</h3>
-                <p className="text-sm text-muted-foreground">{step.description}</p>
+                <p className="text-sm text-gray-600">{step.description}</p>
               </div>
             ))}
           </div>

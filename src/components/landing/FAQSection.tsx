@@ -38,10 +38,10 @@ export function FAQSection() {
   return (
     <section className="mx-auto max-w-3xl px-6 py-24">
       <div className="text-center mb-16">
-        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
+        <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-4">
           Frequently Asked Questions
         </h2>
-        <p className="text-lg text-muted-foreground">
+        <p className="text-lg text-gray-600">
           Everything you need to know about PrepX
         </p>
       </div>
@@ -49,8 +49,8 @@ export function FAQSection() {
       <Accordion type="single" collapsible className="w-full">
         {faqs.map((faq, index) => (
           <AccordionItem key={index} value={`item-${index}`}>
-            <AccordionTrigger className="text-left">{faq.question}</AccordionTrigger>
-            <AccordionContent className="text-muted-foreground">
+            <AccordionTrigger className="text-left text-gray-700">{faq.question}</AccordionTrigger>
+            <AccordionContent className="text-gray-600">
               {faq.answer}
             </AccordionContent>
           </AccordionItem>

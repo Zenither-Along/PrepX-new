@@ -144,7 +144,7 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
   };
 
   return (
-    <div className="flex h-full w-[350px] shrink-0 flex-col border-l border-border bg-card">
+    <div className="flex h-full w-[400px] shrink-0 flex-col border-l border-border bg-card">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border p-4">
         <div className="flex items-center gap-2">

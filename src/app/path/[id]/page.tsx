@@ -179,8 +179,8 @@ export default function ViewPathPage() {
       if (!column) return;
       
       // Apply constraints based on column type
-      const minWidth = 80;
-      const maxWidth = column.type === 'branch' ? 300 : 1200;
+      const minWidth = column.type === 'branch' ? 80 : 400;
+      const maxWidth = column.type === 'branch' ? 300 : 1500;
       const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
       
       setColumnWidths(prev => new Map(prev).set(resizing.columnId, constrainedWidth));
@@ -247,7 +247,7 @@ export default function ViewPathPage() {
                               onClick={() => onSelectItem(col.id, item.id)}
                               className={cn(
                                 "w-full rounded-lg px-4 py-3 text-left text-sm font-medium transition-colors",
-                                selectedItemId === item.id ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                                selectedItemId === item.id ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm font-semibold" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                               )}
                             >
                               {item.title}
@@ -288,7 +288,7 @@ export default function ViewPathPage() {
                 
                 const width = columnWidths.get(col.id) || 1200;
                 return (
-                    <div key={col.id} className="relative flex shrink-0 gap-4 border-x border-border" style={{ width: isChatOpen ? `${width + 354}px` : `${width}px` }}>
+                    <div key={col.id} className="relative flex shrink-0 gap-4 border-x border-border" style={{ width: isChatOpen ? `${width + 400}px` : `${width}px` }}>
                       <section className="flex-1 flex flex-col overflow-hidden bg-muted/30">
                           {/* Header section */}
                           <div className="p-3 border-b border-border flex items-center justify-between">

@@ -47,14 +47,14 @@ export function TestimonialsSection() {
       <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
       
       <div className="text-center mb-16">
-        <div className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="mb-4 inline-flex items-center gap-2 text-sm text-gray-600">
           <Sparkles className="h-4 w-4" />
           Testimonials
         </div>
-        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
+        <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-4">
           Loved by Learners & Educators
         </h2>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
           Join thousands of users who are already learning smarter with PrepX
         </p>
       </div>

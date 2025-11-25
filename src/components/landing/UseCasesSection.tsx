@@ -34,10 +34,10 @@ export function UseCasesSection() {
     <section className="bg-slate-50 py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="mb-16 text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
             Who is PrepX for?
           </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
+          <p className="mt-4 text-lg text-gray-600">
             Whether you're teaching, learning, or just organizing ideas
           </p>
         </div>
@@ -51,7 +51,7 @@ export function UseCasesSection() {
                 <useCase.icon className="h-6 w-6" />
               </div>
               <h3 className="mb-2 text-xl font-semibold">{useCase.title}</h3>
-              <p className="text-muted-foreground">{useCase.description}</p>
+              <p className="text-gray-600">{useCase.description}</p>
             </div>
           ))}
         </div>

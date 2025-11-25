@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
-export function Logo({ className = "", width = 120, height = 40, textColor }: { className?: string; width?: number; height?: number; textColor?: string }) {
+export function Logo({ className = "", width = 120, height = 40, textColor, forceTheme }: { className?: string; width?: number; height?: number; textColor?: string; forceTheme?: "light" | "dark" }) {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -12,7 +12,8 @@ export function Logo({ className = "", width = 120, height = 40, textColor }: { 
     setMounted(true);
   }, []);
 
-  const iconSrc = mounted && resolvedTheme === "dark" ? "/logo-icon-dark.png" : "/logo-icon-light.png";
+  const effectiveTheme = forceTheme || (mounted ? resolvedTheme : "light");
+  const iconSrc = effectiveTheme === "dark" ? "/logo-icon-dark.png" : "/logo-icon-light.png";
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
