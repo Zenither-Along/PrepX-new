@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Pencil, MessageSquare, Star } from "lucide-react";
+import { ArrowLeft, Pencil, MessageSquare, Star, Brain } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { db } from "@/lib/db";
 import { ContentRenderer } from "@/components/view/ContentRenderer";
 import { ChatColumn } from "@/components/editor/ChatColumn";
+import { QuizList } from "@/components/quiz/QuizList";
 import { cn } from "@/lib/utils";
 import { Column, ColumnItem, ContentSection } from "./edit/types";
 
@@ -30,8 +31,8 @@ export default function ViewPathPage() {
   const [columnWidths, setColumnWidths] = useState<Map<string, number>>(new Map());
   const [resizing, setResizing] = useState<{ columnId: string; startX: number; startWidth: number } | null>(null);
   
-  // Track chat state for each content column
-  const [openChats, setOpenChats] = useState<Set<string>>(new Set());
+  // Track active panel for each content column (chat or quiz)
+  const [activePanels, setActivePanels] = useState<Map<string, 'chat' | 'quiz' | null>>(new Map());
 
   // Mobile navigation state
   const [isMobile, setIsMobile] = useState(false);
@@ -221,6 +222,18 @@ export default function ViewPathPage() {
     };
   }, [resizing, columns]);
 
+  const togglePanel = (columnId: string, panel: 'chat' | 'quiz') => {
+    setActivePanels(prev => {
+      const next = new Map(prev);
+      if (next.get(columnId) === panel) {
+        next.set(columnId, null);
+      } else {
+        next.set(columnId, panel);
+      }
+      return next;
+    });
+  };
+
   if (loading) return <div className="flex h-screen items-center justify-center">Loading Path…</div>;
   if (!path) return <div className="flex h-screen items-center justify-center">Path not found</div>;
 
@@ -310,7 +323,7 @@ export default function ViewPathPage() {
               }
               
               const colSections = sections.filter(s => s.column_id === col.id);
-              const isChatOpen = openChats.has(col.id);
+              const activePanel = activePanels.get(col.id);
               
               return (
                 <div className="flex flex-col h-full bg-muted/30">
@@ -324,27 +337,45 @@ export default function ViewPathPage() {
                       )}
                       <h2 className="text-xl font-bold truncate">{title}</h2>
                     </div>
-                    <Button 
-                      variant={isChatOpen ? "default" : "ghost"} 
-                      size="icon" 
-                      className="h-8 w-8 shrink-0"
-                      onClick={() => {
-                        setOpenChats(prev => {
-                          const next = new Set(prev);
-                          if (next.has(col.id)) {
-                            next.delete(col.id);
-                          } else {
-                            next.add(col.id);
-                          }
-                          return next;
-                        });
-                      }}
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button 
+                        variant={activePanel === 'quiz' ? "default" : "ghost"} 
+                        size="icon" 
+                        className="h-8 w-8 shrink-0"
+                        onClick={() => togglePanel(col.id, 'quiz')}
+                      >
+                        <Brain className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant={activePanel === 'chat' ? "default" : "ghost"} 
+                        size="icon" 
+                        className="h-8 w-8 shrink-0"
+                        onClick={() => togglePanel(col.id, 'chat')}
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   {/* Content area */}
-                  {!isChatOpen ? (
+                  {activePanel === 'chat' ? (
+                    <ChatColumn 
+                      columnId={col.id}
+                      contextData={colSections}
+                      onClose={() => togglePanel(col.id, 'chat')}
+                    />
+                  ) : activePanel === 'quiz' ? (
+                    <div className="flex-1 overflow-y-auto p-4 bg-background">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-semibold">Quizzes</h3>
+                        <Button variant="ghost" size="sm" onClick={() => togglePanel(col.id, 'quiz')}>Close</Button>
+                      </div>
+                      <QuizList 
+                        pathId={id as string}
+                        columnId={col.id}
+                        contentContext={colSections.map(s => s.content).join('\n')}
+                      />
+                    </div>
+                  ) : (
                     <div className="flex-1 overflow-y-auto p-4 space-y-2">
                       {colSections.length === 0 ? (
                         <p className="text-muted-foreground italic">No content in this section.</p>
@@ -354,18 +385,6 @@ export default function ViewPathPage() {
                         ))
                       )}
                     </div>
-                  ) : (
-                    <ChatColumn 
-                      columnId={col.id}
-                      contextData={colSections}
-                      onClose={() => {
-                        setOpenChats(prev => {
-                          const next = new Set(prev);
-                          next.delete(col.id);
-                          return next;
-                        });
-                      }}
-                    />
                   )}
                 </div>
               );
@@ -424,33 +443,38 @@ export default function ViewPathPage() {
                 }
 
                 const colSections = sections.filter(s => s.column_id === col.id);
-                const isChatOpen = openChats.has(col.id);
+                const activePanel = activePanels.get(col.id);
                 
                 const width = columnWidths.get(col.id) || 1200;
+                const panelWidth = 400;
+                const totalWidth = activePanel ? width + panelWidth : width;
+
                 return (
-                    <div key={col.id} className="relative flex shrink-0 gap-4 border-x border-border" style={{ width: isChatOpen ? `${width + 400}px` : `${width}px` }}>
+                    <div key={col.id} className="relative flex shrink-0 gap-4 border-x border-border" style={{ width: `${totalWidth}px` }}>
                       <section className="flex-1 flex flex-col overflow-hidden bg-muted/30">
                           {/* Header section */}
                           <div className="p-3 border-b border-border flex items-center justify-between">
                             <h2 className="text-xl font-bold">{title}</h2>
-                            <Button 
-                              variant={isChatOpen ? "default" : "ghost"} 
-                              size="icon" 
-                              className="h-8 w-8 shrink-0 cursor-pointer"
-                              onClick={() => {
-                                setOpenChats(prev => {
-                                  const next = new Set(prev);
-                                  if (next.has(col.id)) {
-                                    next.delete(col.id);
-                                  } else {
-                                    next.add(col.id);
-                                  }
-                                  return next;
-                                });
-                              }}
-                            >
-                              <MessageSquare className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button 
+                                variant={activePanel === 'quiz' ? "default" : "ghost"} 
+                                size="icon" 
+                                className="h-8 w-8 shrink-0 cursor-pointer"
+                                onClick={() => togglePanel(col.id, 'quiz')}
+                                title="Quizzes"
+                              >
+                                <Brain className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant={activePanel === 'chat' ? "default" : "ghost"} 
+                                size="icon" 
+                                className="h-8 w-8 shrink-0 cursor-pointer"
+                                onClick={() => togglePanel(col.id, 'chat')}
+                                title="AI Assistant"
+                              >
+                                <MessageSquare className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
                           {/* Content area */}
                           <div className="flex-1 overflow-y-auto p-6 space-y-2 no-scrollbar">
@@ -464,19 +488,31 @@ export default function ViewPathPage() {
                           </div>
                       </section>
                       
-                      {/* Chat Column */}
-                      {isChatOpen && (
+                      {/* Side Panel (Chat or Quiz) */}
+                      {activePanel === 'chat' && (
                         <ChatColumn 
                           columnId={col.id}
                           contextData={colSections}
-                          onClose={() => {
-                            setOpenChats(prev => {
-                              const next = new Set(prev);
-                              next.delete(col.id);
-                              return next;
-                            });
-                          }}
+                          onClose={() => togglePanel(col.id, 'chat')}
                         />
+                      )}
+
+                      {activePanel === 'quiz' && (
+                        <div className="w-[400px] flex flex-col border-l border-border bg-background h-full">
+                          <div className="p-3 border-b border-border flex items-center justify-between">
+                            <h3 className="font-semibold">Quizzes</h3>
+                            <Button variant="ghost" size="icon" onClick={() => togglePanel(col.id, 'quiz')} className="h-8 w-8">
+                              <ArrowLeft className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="flex-1 overflow-y-auto p-4">
+                            <QuizList 
+                              pathId={id as string}
+                              columnId={col.id}
+                              contentContext={colSections.map(s => s.content).join('\n')}
+                            />
+                          </div>
+                        </div>
                       )}
                       
                       {/* Resize handle */}
