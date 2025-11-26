@@ -10,9 +10,18 @@ import { LandingPage } from "@/components/LandingPage";
 import { PathCard } from "@/components/home/PathCard";
 import { CreatePathDialog } from "@/components/home/CreatePathDialog";
 import { EditDescriptionDialog } from "@/components/home/EditDescriptionDialog";
+import { PathGeneratorDialog } from "@/components/path-generator/PathGeneratorDialog";
+import { saveGeneratedPath } from "@/lib/ai/saveGeneratedPath";
 import { usePathManager } from "@/hooks/usePathManager";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useSupabase } from "@/lib/useSupabase";
 
 export default function Home() {
+  const router = useRouter();
+  const [isSavingAI, setIsSavingAI] = useState(false);
+  const supabase = useSupabase();
+  
   const {
     user,
     isLoaded,
@@ -36,6 +45,22 @@ export default function Home() {
     handleUnsetMajor,
     handlePublish
   } = usePathManager();
+
+  const handlePathGenerated = async (pathData: any) => {
+    if (!user) return;
+    
+    setIsSavingAI(true);
+    try {
+      const pathId = await saveGeneratedPath(supabase, user.id, pathData);
+      // Refresh the page or paths list
+      router.push(`/path/${pathId}/edit`);
+    } catch (error: any) {
+      console.error("Failed to save generated path:", error);
+      alert("Failed to save path: " + error.message);
+    } finally {
+      setIsSavingAI(false);
+    }
+  };
 
   if (!isLoaded) return null;
 
@@ -79,14 +104,17 @@ export default function Home() {
             <p className="mt-1 text-muted-foreground">Welcome to Your PrepX</p>
           </div>
           
-          <CreatePathDialog 
-            open={isDialogOpen}
-            onOpenChange={setIsDialogOpen}
-            title={newPathTitle}
-            onTitleChange={setNewPathTitle}
-            onCreate={handleCreatePath}
-            isCreating={isCreating}
-          />
+          <div className="flex gap-2">
+            <PathGeneratorDialog onPathGenerated={handlePathGenerated} />
+            <CreatePathDialog 
+              open={isDialogOpen}
+              onOpenChange={setIsDialogOpen}
+              title={newPathTitle}
+              onTitleChange={setNewPathTitle}
+              onCreate={handleCreatePath}
+              isCreating={isCreating}
+            />
+          </div>
         </div>
 
         {loading ? (
