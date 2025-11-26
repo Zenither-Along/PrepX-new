@@ -80,9 +80,9 @@ export function FeaturesSection() {
               </div>
             </div>
           </div>
-          <h3 className="mb-2 text-xl font-semibold">AI-Powered Assistance</h3>
+          <h3 className="mb-2 text-xl font-semibold">AI Path Generator</h3>
           <p className="text-sm text-gray-600">
-            Get intelligent suggestions for course structure, content generation, and quiz creation powered by advanced AI.
+            Instantly generate complete learning paths with branches, items, and content. Coming soon: AI Quizzes and Study Buddy.
           </p>
         </div>
 

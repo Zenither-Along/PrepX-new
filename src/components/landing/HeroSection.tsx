@@ -31,19 +31,19 @@ export function HeroSection() {
       <div className="relative mx-auto max-w-7xl px-6 pt-40 pb-40 sm:pt-48 sm:pb-48">
         <div className="text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-sm border border-white/30 px-4 py-2">
-            <span className="text-sm text-white font-medium">✨ New: AI-powered learning assistant</span>
+            <span className="text-sm text-white font-medium">✨ New: AI Path Generator & Premium Features</span>
           </div>
           <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-7xl drop-shadow-lg">
-            Turn Learning Chaos Into
+            Master Any Skill with
             <br />
             <span className="bg-gradient-to-r from-yellow-300 via-orange-300 to-pink-300 bg-clip-text text-transparent">
-              Structured Clarity
+              AI-Powered Clarity
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-xl text-white drop-shadow-md">
-            PrepX helps you create, organize, and share structured learning paths
+            Instantly generate structured learning paths, quizzes, and study guides.
             <br />
-            so your knowledge stays organized and actionable.
+            The future of personalized learning is here.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             {isSignedIn ? (
@@ -69,7 +69,7 @@ export function HeroSection() {
           </div>
           <p className="mt-6 text-sm text-white flex items-center justify-center gap-2">
             <Check className="h-4 w-4" />
-            No credit card required • Free forever
+            Start for free • No credit card required
           </p>
         </div>
       </div>

@@ -11,19 +11,19 @@ export function FAQSection() {
   const faqs = [
     {
       question: "Is PrepX free to use?",
-      answer: "Yes! PrepX is completely free for individuals. You can create unlimited public paths and access all core features without paying a dime."
+      answer: "PrepX operates on a Freemium model. You can create and explore paths for free. Premium features like unlimited AI generation, advanced quizzes, and the AI Study Buddy will be available with a subscription."
+    },
+    {
+      question: "What AI features are available?",
+      answer: "Currently, you can use the AI Path Generator to instantly create structured courses. We are actively developing an AI Quiz Generator and an interactive AI Study Buddy to personalize your learning even further."
     },
     {
       question: "Can I keep my learning paths private?",
-      answer: "Currently, all paths are public to foster a community of shared knowledge. We are working on private path features for a future update."
+      answer: "Yes! You can choose to keep your paths private or publish them to the community. Collaboration features for teams are also on our roadmap."
     },
     {
-      question: "How does the AI assistance work?",
-      answer: "Our AI helps you structure your content, suggests topics to cover, and can even help generate quizzes and summaries for your learning nodes."
-    },
-    {
-      question: "Can I collaborate with others?",
-      answer: "Yes, you can share your paths with anyone. We are actively building real-time collaboration features to let teams work on paths together."
+      question: "What's coming next for PrepX?",
+      answer: "We are building a complete AI-powered learning ecosystem. Upcoming features include gamified quizzes, spaced repetition, a mobile app, and real-time collaboration tools."
     },
     {
       question: "What kind of content can I add?",
@@ -31,7 +31,7 @@ export function FAQSection() {
     },
     {
       question: "Is there a mobile app?",
-      answer: "PrepX is a fully responsive web application that works great on mobile devices, tablets, and desktops. A dedicated mobile app is on our roadmap."
+      answer: "PrepX is fully responsive for mobile browsers. A dedicated mobile app is planned for the future to provide an even better on-the-go learning experience."
     }
   ];
 

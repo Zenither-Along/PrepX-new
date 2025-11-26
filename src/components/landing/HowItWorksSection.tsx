@@ -2,10 +2,10 @@
 
 export function HowItWorksSection() {
   const steps = [
-    { title: "Create a Path", description: "Start with a topic or goal" },
-    { title: "Build Structure", description: "Add branches and organize content" },
-    { title: "Add Content", description: "Fill with rich, dynamic materials" },
-    { title: "Share or Learn", description: "Publish or use for yourself" }
+    { title: "Generate with AI", description: "Instantly create a path from any topic" },
+    { title: "Customize & Refine", description: "Edit structure and add your own touch" },
+    { title: "Interactive Learning", description: "Engage with quizzes and rich content" },
+    { title: "Track Progress", description: "Monitor your journey to mastery" }
   ];
 
   return (
