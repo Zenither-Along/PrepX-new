@@ -38,7 +38,7 @@ export default async function ExplorePage({
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 items-center justify-between px-12">
+        <div className="mx-auto flex h-16 items-center justify-between px-4 md:px-12">
           <div className="flex items-center gap-4">
             <Link href="/">
               <Button variant="ghost" size="icon">
@@ -47,7 +47,7 @@ export default async function ExplorePage({
             </Link>
             <Logo width={140} height={48} />
           </div>
-          <div className="flex items-center gap-4 w-1/3">
+          <div className="hidden md:flex items-center gap-4 w-1/3">
             <form className="relative w-full">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -61,19 +61,32 @@ export default async function ExplorePage({
         </div>
       </header>
 
-      <main className="mx-auto px-12 py-12">
+      <main className="mx-auto px-4 md:px-12 py-6 md:py-12">
+        {/* Mobile Search Bar */}
+        <div className="mb-6 md:hidden">
+            <form className="relative w-full">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                name="q"
+                placeholder="Search paths..."
+                className="pl-9 w-full bg-muted/50"
+                defaultValue={query}
+              />
+            </form>
+        </div>
+
         {/* Tags Filter (Mock for now, or dynamic if we had a tags table) */}
-        <div className="mb-8 flex gap-2 overflow-x-auto pb-2">
+        <div className="mb-8 flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
           {["React", "Next.js", "Python", "Design", "Interview"].map((t) => (
             <Link key={t} href={`/explore?tag=${t}`}>
-              <Badge variant={tagFilter === t ? "default" : "outline"} className="cursor-pointer px-4 py-1.5 text-sm hover:bg-primary hover:text-primary-foreground">
+              <Badge variant={tagFilter === t ? "default" : "outline"} className="cursor-pointer px-4 py-1.5 text-sm hover:bg-primary hover:text-primary-foreground whitespace-nowrap">
                 {t}
               </Badge>
             </Link>
           ))}
           {tagFilter && (
             <Link href="/explore">
-              <Button variant="ghost" size="sm" className="h-8">Clear Filter</Button>
+              <Button variant="ghost" size="sm" className="h-8 whitespace-nowrap">Clear Filter</Button>
             </Link>
           )}
         </div>

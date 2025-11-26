@@ -38,9 +38,9 @@ export function PathCard({
       <CardHeader className="pb-3 flex-1">
         <div className="flex items-start justify-between gap-2">
           <Link href={`/path/${path.id}`} className="flex-1 min-w-0">
-            <CardTitle className="text-base line-clamp-1 hover:text-blue-600 transition-colors cursor-pointer flex items-center gap-2">
-              {path.is_major && <Star className="h-4 w-4 text-yellow-500" />}
-              {path.title}
+            <CardTitle className="text-base hover:text-blue-600 transition-colors cursor-pointer flex items-center gap-2">
+              {path.is_major && <Star className="h-4 w-4 text-yellow-500 shrink-0" />}
+              <span className="truncate">{path.title}</span>
             </CardTitle>
           </Link>
           <DropdownMenu>
