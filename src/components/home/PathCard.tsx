@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { MoreVertical, Pencil, Star, Share2, Trash2, BookOpen } from "lucide-react";
+import { MoreVertical, Pencil, Star, Share2, Trash2, BookOpen, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -50,15 +50,15 @@ export function PathCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEditDescription(path.id, path.subtitle)}>
-                <Pencil className="mr-2 h-4 w-4" />
-                Add Description
-              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href={`/path/${path.id}/edit`} className="flex items-center cursor-pointer">
                   <Pencil className="mr-2 h-4 w-4" />
                   Edit
                 </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEditDescription(path.id, path.subtitle)}>
+                <FileText className="mr-2 h-4 w-4" />
+                Add Description
               </DropdownMenuItem>
               {path.is_major ? (
                 <DropdownMenuItem onClick={() => onUnsetMajor(path.id)}>

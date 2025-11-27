@@ -24,6 +24,13 @@ export default async function ExplorePage({
 
   async function handleClone(pathId: string) {
     "use server";
+    const { userId } = await auth();
+    
+    // Redirect to sign-in if not authenticated
+    if (!userId) {
+      redirect("/sign-in");
+    }
+    
     try {
       await clonePath(pathId);
     } catch (error) {
@@ -118,11 +125,12 @@ export default async function ExplorePage({
                   </div>
                 </div>
                 
-                {userId !== path.user_id && (
+                {/* Show clone button if user doesn't own the path (or not logged in) */}
+                {(!userId || userId !== path.user_id) && (
                   <form action={handleClone.bind(null, path.id)}>
                     <Button size="sm" variant="secondary" className="gap-2">
                       <Copy className="h-3.5 w-3.5" />
-                      Clone
+                      {userId ? "Clone" : "Clone (Sign in)"}
                     </Button>
                   </form>
                 )}

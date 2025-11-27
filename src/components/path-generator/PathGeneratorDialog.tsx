@@ -198,8 +198,8 @@ export function PathGeneratorDialog({
             </div>
           ) : (
             // Preview generated path
-            <div className="flex-1 flex flex-col gap-4 overflow-hidden">
-              <div className="rounded-lg border border-border bg-muted/50 p-4">
+            <div className="flex-1 flex flex-col gap-4 min-h-0">
+              <div className="rounded-lg border border-border bg-muted/50 p-4 shrink-0">
                 <h3 className="text-lg font-semibold">{generatedData.path.title}</h3>
                 <p className="text-sm text-muted-foreground">{generatedData.path.subtitle}</p>
               </div>

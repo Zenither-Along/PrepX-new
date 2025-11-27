@@ -144,7 +144,7 @@ export function DynamicColumn({
         <div 
           className={cn(
             "flex-1 overflow-y-auto overflow-x-hidden no-scrollbar",
-            fullScreen ? "p-3 space-y-2 pb-24" : "p-6 space-y-3 pb-24"
+            fullScreen ? "p-3 space-y-2 pb-28" : "p-6 space-y-3 pb-32"
           )}
         >
           <DndContext
