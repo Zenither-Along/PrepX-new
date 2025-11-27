@@ -3,6 +3,7 @@ import { Instrument_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { RoleSelectionDialog } from "@/components/auth/RoleSelectionDialog";
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-instrument-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {children}
+            <RoleSelectionDialog />
           </ThemeProvider>
         </body>
       </html>

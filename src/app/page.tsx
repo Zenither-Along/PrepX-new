@@ -1,7 +1,7 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { BookOpen, Star, Globe } from "lucide-react";
+import { BookOpen, Star, Globe, School, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -62,6 +62,14 @@ export default function Home() {
     }
   };
 
+  // Add app-page class to body for viewport control
+  useEffect(() => {
+    document.body.classList.add('app-page');
+    return () => {
+      document.body.classList.remove('app-page');
+    };
+  }, []);
+
   if (!isLoaded) return null;
 
   if (!user) {
@@ -83,6 +91,12 @@ export default function Home() {
               <Button variant="ghost" size="icon" className="md:w-auto md:px-4">
                 <Globe className="h-4 w-4" />
                 <span className="hidden md:inline ml-2">Explore</span>
+              </Button>
+            </Link>
+            <Link href="/classrooms">
+              <Button variant="ghost" size="icon" className="md:w-auto md:px-4">
+                <School className="h-4 w-4" />
+                <span className="hidden md:inline ml-2">Classrooms</span>
               </Button>
             </Link>
             <Link href="/major">
