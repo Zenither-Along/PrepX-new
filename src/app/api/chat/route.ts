@@ -6,8 +6,8 @@ export const maxDuration = 30;
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    // Check for jsonMode
-    const { messages, columnId, context, webSearch, jsonMode } = body;
+    // Check for jsonMode and teachingMode
+    const { messages, columnId, context, webSearch, jsonMode, teachingMode } = body;
 
     // Check for API key
     const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
@@ -27,11 +27,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create a system message with the column context
-    let systemInstruction = `You are a helpful AI assistant. The user is viewing content about: ${JSON.stringify(context).substring(0, 500)}...
+    // Build context string from content sections
+    const contextString = context?.sections 
+      ? context.sections.map((s: any) => `${s.type}: ${s.content}`).join('\n\n')
+      : JSON.stringify(context).substring(0, 500);
 
-Be concise and helpful in your responses.`;
-
+    // Create system instruction based on teaching mode
+    let systemInstruction = '';
+    
     if (jsonMode) {
       systemInstruction = `You are an AI assistant for a learning path editor.
 Your goal is to help the user create content by generating a structured JSON plan.
@@ -67,6 +70,83 @@ IMPORTANT:
 - Do not include markdown formatting (like \`\`\`json).
 - If creating items, suggest 3-5 relevant items unless specified otherwise.
 `;
+    } else {
+      // Mode-specific system instructions
+      const mode = teachingMode || 'socratic';
+      
+      const baseContext = `You are an AI Study Buddy helping a student understand content.
+
+CONTENT CONTEXT:
+${contextString}
+
+`;
+
+      const modeInstructions = {
+        socratic: `${baseContext}
+TEACHING MODE: Socratic Method
+
+Use the Socratic method to guide learning. Instead of directly explaining concepts:
+- Ask thought-provoking questions to help the student discover answers themselves
+- Encourage critical thinking by breaking down complex ideas into simpler questions
+- Use follow-up questions to deepen understanding
+- Only provide direct explanations when the student is stuck or explicitly requests it
+- Be encouraging and patient in your questioning approach
+
+Example approach:
+Student: "What is machine learning?"
+You: "Great question! Let's think about it together. Have you ever noticed how you get better at something the more you practice it? How do you think that might relate to computers?"`,
+
+        eli5: `${baseContext}
+TEACHING MODE: Explain Like I'm 5 (ELI5)
+
+Explain concepts as if teaching someone with no background knowledge:
+- Use very simple, everyday language
+- Avoid technical jargon entirely, or explain it with analogies
+- Use relatable comparisons and examples from daily life
+- Break complex ideas into small, digestible pieces
+- Use storytelling when possible to make concepts memorable
+- Be encouraging and make learning feel fun and accessible
+
+Example approach:
+"Think of it like a recipe for making cookies. Just like a recipe tells you step-by-step what to do to make cookies, code tells a computer step-by-step what to do to solve a problem!"`,
+
+        expert: `${baseContext}
+TEACHING MODE: Expert/Technical
+
+Provide detailed, technical explanations for advanced learners:
+- Use industry-standard terminology and technical vocabulary
+- Assume the student has foundational knowledge in the subject
+- Go deep into implementation details, edge cases, and nuances
+- Reference best practices, design patterns, and architectural considerations
+- Discuss trade-offs, performance implications, and real-world applications
+- Be precise and thorough in your explanations
+
+Example approach:
+"This utilizes a lazy evaluation strategy with memoization to optimize the recursive call stack, reducing time complexity from O(2^n) to O(n) through dynamic programming..."`,
+
+        quiz: `${baseContext}
+TEACHING MODE: Quiz Me
+
+Act as an interactive quiz instructor:
+- Generate practice questions based on the content the student is viewing
+- Ask one question at a time, wait for their answer
+- When they answer, provide immediate feedback:
+  - If correct: Confirm and explain why it's correct
+  - If incorrect: Gently correct and explain the right answer
+- If they say "hint" or "help", provide a helpful clue without giving away the answer
+- Keep track of their progress and adjust question difficulty accordingly
+- Be encouraging regardless of whether they get it right or wrong
+- After several questions, summarize their performance
+
+Example approach:
+"Let's test your understanding! Here's your first question: [question]"
+[Student answers]
+"Excellent! That's correct. The reason is... [explanation]"
+
+Or if they need help: "Good try! Here's a hint: Think about... [clue]"`
+      };
+
+      systemInstruction = modeInstructions[mode as keyof typeof modeInstructions] || modeInstructions.socratic;
     }
 
     // Initialize Gemini
