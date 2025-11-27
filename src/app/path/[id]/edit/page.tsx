@@ -54,6 +54,14 @@ export default function EditorPage() {
 
   const onExecutePlan = useExecutePlan(editorData, editorSave);
 
+  // Add app-page class to body for viewport control
+  useEffect(() => {
+    document.body.classList.add('app-page');
+    return () => {
+      document.body.classList.remove('app-page');
+    };
+  }, []);
+
   if (editorData.loading) return <div className="flex h-screen items-center justify-center">Loading Editor...</div>;
   if (!editorData.path) return <div className="flex h-screen items-center justify-center">Path not found</div>;
 

@@ -46,6 +46,14 @@ export default function ViewPathPage() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Add app-page class to body for viewport control
+  useEffect(() => {
+    document.body.classList.add('app-page');
+    return () => {
+      document.body.classList.remove('app-page');
+    };
+  }, []);
+
   // ---------------------------------------------------
   // Data fetching
   // ---------------------------------------------------

@@ -95,8 +95,6 @@
 
 html {
   scroll-behavior: smooth;
-  height: 100dvh; /* Use dynamic viewport height for mobile */
-  overflow: hidden; /* Prevent scroll on html */
 }
 
 body {
@@ -105,16 +103,19 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  height: 100%;
-  overflow: hidden; /* Prevent scroll on body */
+}
+
+/* For app pages (view and edit), use fixed viewport to prevent browser chrome scroll */
+body.app-page {
+  height: 100dvh;
+  overflow: hidden;
   width: 100%;
 }
 
-/* Ensure the nextjs root div takes full height */
-body > div:first-child {
+body.app-page > div:first-child {
   height: 100%;
-  overflow-y: auto; /* Allow scroll on the main app container */
-  -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 @layer utilities {

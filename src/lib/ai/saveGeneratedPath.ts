@@ -40,53 +40,88 @@ export async function saveGeneratedPath(
 
   const pathId = pathData.id;
 
-  // 2. Create branch columns
-  for (let columnIdx = 0; columnIdx < generatedData.branches.length; columnIdx++) {
-    const branch = generatedData.branches[columnIdx];
+  // 2. Create root branch column (for modules)
+  const { data: rootColumnData, error: rootColumnError } = await supabase
+    .from("columns")
+    .insert({
+      path_id: pathId,
+      title: "Syllabus",
+      type: 'branch',
+      order_index: 0,
+      parent_item_id: null,
+    })
+    .select()
+    .single();
+
+  if (rootColumnError || !rootColumnData) {
+    console.error("Error creating root column:", rootColumnError);
+    throw new Error("Failed to create root column");
+  }
+
+  // 3. Create items (modules) in root branch
+  for (let moduleIdx = 0; moduleIdx < generatedData.branches.length; moduleIdx++) {
+    const module = generatedData.branches[moduleIdx];
     
-    const { data: columnData, error: columnError } = await supabase
-      .from("columns")
+    const { data: moduleItemData, error: moduleItemError } = await supabase
+      .from("column_items")
       .insert({
-        path_id: pathId,
-        title: branch.title,
-        type: 'branch',
-        order_index: columnIdx,
+        column_id: rootColumnData.id,
+        title: module.title,
+        order_index: moduleIdx,
       })
       .select()
       .single();
 
-    if (columnError || !columnData) {
-      console.error("Error creating column:", columnError);
+    if (moduleItemError || !moduleItemData) {
+      console.error("Error creating module item:", moduleItemError);
       continue;
     }
 
-    // 3. Create items for this branch column
-    for (let itemIdx = 0; itemIdx < branch.items.length; itemIdx++) {
-      const item = branch.items[itemIdx];
+    // 4. Create sub-branch column for topics in this module
+    const { data: topicsBranchData, error: topicsBranchError } = await supabase
+      .from("columns")
+      .insert({
+        path_id: pathId,
+        parent_item_id: moduleItemData.id,
+        title: module.title,
+        type: 'branch',
+        order_index: 0,
+      })
+      .select()
+      .single();
+
+    if (topicsBranchError || !topicsBranchData) {
+      console.error("Error creating topics branch:", topicsBranchError);
+      continue;
+    }
+
+    // 5. Create items (topics) in the topics branch
+    for (let topicIdx = 0; topicIdx < module.items.length; topicIdx++) {
+      const topic = module.items[topicIdx];
       
-      const { data: itemData, error: itemError } = await supabase
+      const { data: topicItemData, error: topicItemError } = await supabase
         .from("column_items")
         .insert({
-          column_id: columnData.id,
-          title: item.title,
-          order_index: itemIdx,
+          column_id: topicsBranchData.id,
+          title: topic.title,
+          order_index: topicIdx,
         })
         .select()
         .single();
 
-      if (itemError || !itemData) {
-        console.error("Error creating item:", itemError);
+      if (topicItemError || !topicItemData) {
+        console.error("Error creating topic item:", topicItemError);
         continue;
       }
 
-      // 4. If item has sections, create a content column for it
-      if (item.sections && item.sections.length > 0) {
+      // 6. If topic has sections, create a content column for it
+      if (topic.sections && topic.sections.length > 0) {
         const { data: contentColumnData, error: contentColumnError } = await supabase
           .from("columns")
           .insert({
             path_id: pathId,
-            parent_item_id: itemData.id,
-            title: item.title,
+            parent_item_id: topicItemData.id,
+            title: topic.title,
             type: 'content',
             order_index: 0,
           })
@@ -98,9 +133,9 @@ export async function saveGeneratedPath(
           continue;
         }
 
-        // 5. Create content sections in the content column
-        for (let sectionIdx = 0; sectionIdx < item.sections.length; sectionIdx++) {
-          const section = item.sections[sectionIdx];
+        // 7. Create content sections in the content column
+        for (let sectionIdx = 0; sectionIdx < topic.sections.length; sectionIdx++) {
+          const section = topic.sections[sectionIdx];
           
           // Format content based on type
           let contentData: any = {};

@@ -14,7 +14,7 @@ import { PathGeneratorDialog } from "@/components/path-generator/PathGeneratorDi
 import { saveGeneratedPath } from "@/lib/ai/saveGeneratedPath";
 import { usePathManager } from "@/hooks/usePathManager";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSupabase } from "@/lib/useSupabase";
 
 export default function Home() {
