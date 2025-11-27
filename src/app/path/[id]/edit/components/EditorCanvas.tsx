@@ -28,16 +28,6 @@ export function EditorCanvas({
   setActiveColumnIndex = () => {},
   goBackColumn = () => {},
 }: any) {
-  // Handlers from custom hooks
-  const { handleAddColumn, handleDeleteColumn, handleUpdateBranchTitle } =
-    useColumnHandlers(editorData, editorSave, selectedItems, setSelectedItems);
-
-  const { handleAddItem, handleItemDelete, handleItemEdit, onSelectItem } =
-    useItemHandlers(editorData, editorSave, selectedItems, setSelectedItems);
-
-  const { handleAddSection, handleUpdateSection, handleDeleteSection, handleSectionReorder } =
-    useSectionHandlers(editorData, editorSave);
-
   // Detect mobile viewport if not provided via props
   const [autoIsMobile, setAutoIsMobile] = useState(false);
   useEffect(() => {
@@ -47,6 +37,16 @@ export function EditorCanvas({
     return () => window.removeEventListener("resize", check);
   }, []);
   const mobile = isMobile || autoIsMobile;
+
+  // Handlers from custom hooks
+  const { handleAddColumn, handleDeleteColumn, handleUpdateBranchTitle } =
+    useColumnHandlers(editorData, editorSave, selectedItems, setSelectedItems, mobile ? goBackColumn : undefined);
+
+  const { handleAddItem, handleItemDelete, handleItemEdit, onSelectItem } =
+    useItemHandlers(editorData, editorSave, selectedItems, setSelectedItems);
+
+  const { handleAddSection, handleUpdateSection, handleDeleteSection, handleSectionReorder } =
+    useSectionHandlers(editorData, editorSave);
 
   const columns = editorData.columns;
 
@@ -154,21 +154,19 @@ export function EditorCanvas({
     const colSections = editorData.sections.filter((s: any) => s.column_id === col.id);
     
     return (
-      <div className="flex flex-col h-full bg-muted/30">
-        <DynamicColumn
-          title={title}
-          sections={colSections}
-          width={window.innerWidth}
-          fullScreen={true}
-          onTitleChange={(newTitle) => handleUpdateBranchTitle(col.id, newTitle)}
-          onSectionAdd={(type) => handleAddSection(col.id, type as any)}
-          onSectionChange={handleUpdateSection}
-          onSectionDelete={handleDeleteSection}
-          onSectionReorder={(newSections) => handleSectionReorder(col.id, newSections)}
-          onDelete={() => handleDeleteColumn(col.id)}
-          onBack={activeColumnIndex > 0 ? goBackColumn : undefined}
-        />
-      </div>
+      <DynamicColumn
+        title={title}
+        sections={colSections}
+        width={window.innerWidth}
+        fullScreen={true}
+        onTitleChange={(newTitle) => handleUpdateBranchTitle(col.id, newTitle)}
+        onSectionAdd={(type) => handleAddSection(col.id, type as any)}
+        onSectionChange={handleUpdateSection}
+        onSectionDelete={handleDeleteSection}
+        onSectionReorder={(newSections) => handleSectionReorder(col.id, newSections)}
+        onDelete={() => handleDeleteColumn(col.id)}
+        onBack={activeColumnIndex > 0 ? goBackColumn : undefined}
+      />
     );
   };
 

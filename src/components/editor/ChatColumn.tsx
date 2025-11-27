@@ -302,7 +302,7 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 scroll-smooth" ref={scrollRef}>
+      <div className="flex-1 overflow-y-auto p-4 scroll-smooth pb-24" ref={scrollRef}>
         <div className="space-y-6">
           {messages.length === 0 && (
             <EmptyState 
@@ -489,7 +489,7 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
       </div>
 
       {/* Input Area */}
-      <div className="p-4 pt-2 bg-card">
+      <div className="sticky bottom-0 p-4 pt-2 bg-card z-10 border-t border-border/50">
         <div className="relative flex flex-col rounded-xl border border-input bg-background shadow-sm focus-within:ring-1 focus-within:ring-ring transition-all duration-200">
           <textarea
             ref={textareaRef}

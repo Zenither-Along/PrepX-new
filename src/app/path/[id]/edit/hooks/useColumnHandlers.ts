@@ -4,7 +4,8 @@ export function useColumnHandlers(
   editorData: any,
   editorSave: any,
   selectedItems: Map<string, string>,
-  setSelectedItems: (items: Map<string, string>) => void
+  setSelectedItems: (items: Map<string, string>) => void,
+  onNavigateBack?: () => void // Optional callback for mobile navigation
 ) {
   const handleAddColumn = (parentItemId: string | null, type: 'branch' | 'dynamic') => {
     // Create a temporary column
@@ -64,6 +65,11 @@ export function useColumnHandlers(
     // Track for database deletion
     editorSave.setDeletedColumns((prev: Set<string>) => new Set(prev).add(columnId));
     editorSave.setHasUnsavedChanges(true);
+    
+    // Navigate back on mobile if callback is provided
+    if (onNavigateBack) {
+      onNavigateBack();
+    }
   };
 
   const handleCloseColumn = (columnId: string) => {

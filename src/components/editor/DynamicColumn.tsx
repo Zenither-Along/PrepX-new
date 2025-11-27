@@ -144,7 +144,7 @@ export function DynamicColumn({
         <div 
           className={cn(
             "flex-1 overflow-y-auto overflow-x-hidden no-scrollbar",
-            fullScreen ? "p-3 space-y-2" : "p-6 space-y-3"
+            fullScreen ? "p-3 space-y-2 pb-24" : "p-6 space-y-3 pb-24"
           )}
         >
           <DndContext
@@ -179,8 +179,8 @@ export function DynamicColumn({
 
         {/* Fixed bottom section for Add Section button */}
         <div className={cn(
-          "flex items-center justify-end border-t border-border",
-          fullScreen ? "h-14 px-3" : "h-16 px-4"
+          "flex items-center justify-end border-t border-border bg-card z-20",
+          fullScreen ? "fixed bottom-0 left-0 right-0 h-14 px-3" : "sticky bottom-0 h-16 px-4 z-10"
         )}>
           <SectionPalette onSelect={onSectionAdd}>
             <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer">

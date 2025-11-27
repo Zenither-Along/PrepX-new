@@ -238,9 +238,12 @@ export default function ViewPathPage() {
   if (!path) return <div className="flex h-screen items-center justify-center">Path not found</div>;
 
   return (
-    <div className="flex h-screen flex-col bg-background text-foreground">
+    <div className="flex h-full flex-col bg-background text-foreground">
       {/* Header */}
-      <header className="flex h-14 md:h-16 items-center justify-between border-b border-border px-4">
+      <header className={cn(
+        "h-14 md:h-16 items-center justify-between border-b border-border px-4",
+        activeColumnIndex > 0 ? "hidden md:flex" : "flex"
+      )}>
         <div className="flex items-center space-x-2 md:space-x-4 min-w-0">
           <Button variant="ghost" size="icon" asChild className="hover:bg-accent hover:text-accent-foreground shrink-0">
             <Link href="/">
@@ -253,7 +256,7 @@ export default function ViewPathPage() {
             {path.title}
           </h1>
         </div>
-        <Button size="sm" asChild className="bg-black text-white hover:bg-gray-800 shrink-0">
+        <Button size="sm" asChild className="bg-black text-white hover:bg-gray-800 shrink-0 hidden md:flex">
           <Link href={`/path/${id}/edit`} className="flex items-center gap-2">
             <Pencil className="h-4 w-4" />
             <span className="hidden md:inline">Edit Path</span>
@@ -284,7 +287,8 @@ export default function ViewPathPage() {
               
               return (
                 <div className="flex flex-col h-full bg-muted/30">
-                  {/* Header with back button */}
+                  {/* Header with back button - Only show for child columns */}
+                  {/* Header with back button - Only show for child columns */}
                   <div className="p-3 border-b border-border flex items-center gap-2">
                     {activeColumnIndex > 0 && (
                       <Button variant="ghost" size="icon" onClick={goBackColumn} className="shrink-0">
@@ -356,6 +360,27 @@ export default function ViewPathPage() {
                       </Button>
                     </div>
                   </div>
+                  {/* For root content column (rare but possible), we might need the action buttons if header is hidden */}
+                  {activeColumnIndex === 0 && (
+                     <div className="p-2 flex justify-end gap-2 border-b border-border/50">
+                        <Button 
+                          variant={activePanel === 'quiz' ? "default" : "ghost"} 
+                          size="sm" 
+                          onClick={() => togglePanel(col.id, 'quiz')}
+                        >
+                          <Brain className="h-4 w-4 mr-2" />
+                          Quiz
+                        </Button>
+                        <Button 
+                          variant={activePanel === 'chat' ? "default" : "ghost"} 
+                          size="sm" 
+                          onClick={() => togglePanel(col.id, 'chat')}
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          Chat
+                        </Button>
+                     </div>
+                  )}
                   {/* Content area */}
                   {activePanel === 'chat' ? (
                     <ChatColumn 
