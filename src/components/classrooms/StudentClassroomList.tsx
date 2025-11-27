@@ -4,7 +4,7 @@ import { Classroom } from "@/hooks/useClassrooms";
 import { JoinClassDialog } from "./JoinClassDialog";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { School, ExternalLink, User } from "lucide-react";
+import { School, ExternalLink, User, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 interface StudentClassroomListProps {
@@ -47,25 +47,30 @@ export function StudentClassroomList({ classrooms, onJoinClass }: StudentClassro
         </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {classrooms.map((classroom) => (
-            <Card key={classroom.id} className="flex flex-col overflow-hidden transition-all hover:shadow-md">
+          {classrooms.map((classroom, index) => (
+            <Card 
+              key={classroom.id} 
+              className="flex flex-col overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 duration-300 animate-in fade-in slide-in-from-bottom-4 group"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
               <div className={`h-2 ${getColorClass(classroom.color).split(' ')[0].replace('bg-', 'bg-').replace('100', '500')}`} />
               <CardHeader className="pb-4">
-                <CardTitle className="line-clamp-1">{classroom.name}</CardTitle>
+                <CardTitle className="line-clamp-1 text-lg group-hover:text-primary transition-colors">{classroom.name}</CardTitle>
                 <CardDescription className="line-clamp-2 min-h-[40px]">
                   {classroom.description || "No description"}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pb-4 flex-1">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 p-2 rounded-md">
                   <User className="h-4 w-4" />
                   <span>Instructor</span>
                 </div>
               </CardContent>
               <CardFooter className="border-t bg-muted/10 pt-4">
-                <Button variant="ghost" size="sm" className="w-full gap-1" asChild>
+                <Button variant="ghost" size="sm" className="w-full gap-1 group/btn" asChild>
                   <Link href={`/classrooms/${classroom.id}`}>
-                    Go to Class <ExternalLink className="h-3 w-3" />
+                    Go to Class 
+                    <ArrowRight className="h-3 w-3 transition-transform group-hover/btn:translate-x-1" />
                   </Link>
                 </Button>
               </CardFooter>

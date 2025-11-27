@@ -4,7 +4,7 @@ import { Classroom } from "@/hooks/useClassrooms";
 import { CreateClassDialog } from "./CreateClassDialog";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Copy, ExternalLink, MoreVertical } from "lucide-react";
+import { Users, Copy, ExternalLink, MoreVertical, BookOpen } from "lucide-react";
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 interface TeacherClassroomListProps {
   classrooms: Classroom[];
@@ -58,15 +59,19 @@ export function TeacherClassroomList({ classrooms, onCreateClass }: TeacherClass
         </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {classrooms.map((classroom) => (
-            <Card key={classroom.id} className="flex flex-col overflow-hidden transition-all hover:shadow-md">
+          {classrooms.map((classroom, index) => (
+            <Card 
+              key={classroom.id} 
+              className="flex flex-col overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1 duration-300 animate-in fade-in slide-in-from-bottom-4"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
               <div className={`h-2 ${getColorClass(classroom.color).split(' ')[0].replace('bg-', 'bg-').replace('100', '500')}`} />
               <CardHeader className="pb-4">
                 <div className="flex justify-between items-start">
-                  <CardTitle className="line-clamp-1">{classroom.name}</CardTitle>
+                  <CardTitle className="line-clamp-1 text-lg">{classroom.name}</CardTitle>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="-mr-2 -mt-2 h-8 w-8">
+                      <Button variant="ghost" size="icon" className="-mr-2 -mt-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -80,29 +85,31 @@ export function TeacherClassroomList({ classrooms, onCreateClass }: TeacherClass
                   {classroom.description || "No description"}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pb-4 flex-1">
-                <div className="flex items-center justify-between rounded-md bg-muted/50 p-2">
+              <CardContent className="pb-4 flex-1 space-y-4">
+                <div className="flex items-center justify-between rounded-md bg-muted/50 p-2 transition-colors hover:bg-muted">
                   <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Class Code</div>
                   <div className="flex items-center gap-2">
-                    <code className="font-mono font-bold text-lg tracking-widest">{classroom.code}</code>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyCode(classroom.code)}>
+                    <code className="font-mono font-bold text-lg tracking-widest text-primary">{classroom.code}</code>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 hover:bg-background" onClick={() => copyCode(classroom.code)}>
                       <Copy className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
+                
+                <div className="flex gap-2">
+                  <Badge variant="secondary" className="w-full justify-center py-1 font-normal">
+                    <Users className="mr-1 h-3 w-3" />
+                    {classroom.student_count} Students
+                  </Badge>
+                </div>
               </CardContent>
               <CardFooter className="border-t bg-muted/10 pt-4">
-                <div className="flex w-full items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Users className="h-4 w-4" />
-                    <span>{classroom.student_count} Students</span>
-                  </div>
-                  <Button variant="ghost" size="sm" className="gap-1" asChild>
-                    <Link href={`/classrooms/${classroom.id}`}>
-                      Manage <ExternalLink className="h-3 w-3" />
-                    </Link>
-                  </Button>
-                </div>
+                <Button variant="ghost" size="sm" className="w-full gap-1 group" asChild>
+                  <Link href={`/classrooms/${classroom.id}`}>
+                    Manage Classroom 
+                    <ExternalLink className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </Button>
               </CardFooter>
             </Card>
           ))}

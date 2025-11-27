@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Plus, Loader2, CalendarIcon } from "lucide-react";
+import { Plus, Loader2, CalendarIcon, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useSupabase } from "@/lib/useSupabase";
@@ -40,10 +40,12 @@ export function CreateAssignmentDialog({ classroomId, onCreate, trigger }: Creat
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState<Date | undefined>();
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     if (open && user) {
       fetchPaths();
+      setSuccess(false);
     }
   }, [open, user]);
 
@@ -65,7 +67,6 @@ export function CreateAssignmentDialog({ classroomId, onCreate, trigger }: Creat
       setPaths(data || []);
     } catch (error: any) {
       console.error('Error fetching paths:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
     } finally {
       setLoadingPaths(false);
     }
@@ -78,12 +79,16 @@ export function CreateAssignmentDialog({ classroomId, onCreate, trigger }: Creat
     setLoading(true);
     try {
       await onCreate(selectedPathId, title, description, dueDate || null);
-      setOpen(false);
-      // Reset form
-      setSelectedPathId("");
-      setTitle("");
-      setDescription("");
-      setDueDate(undefined);
+      setSuccess(true);
+      setTimeout(() => {
+        setOpen(false);
+        // Reset form
+        setSelectedPathId("");
+        setTitle("");
+        setDescription("");
+        setDueDate(undefined);
+        setSuccess(false);
+      }, 1000);
     } catch (error) {
       console.error("Failed to create assignment:", error);
     } finally {
@@ -95,100 +100,117 @@ export function CreateAssignmentDialog({ classroomId, onCreate, trigger }: Creat
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="gap-2">
+          <Button className="gap-2 shadow-sm hover:shadow-md transition-all">
             <Plus className="h-4 w-4" />
             Create Assignment
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] overflow-hidden">
         <DialogHeader>
           <DialogTitle>Create Assignment</DialogTitle>
           <DialogDescription>
             Assign a learning path to this classroom with an optional due date.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="path">Learning Path *</Label>
-            {loadingPaths ? (
-              <div className="flex items-center justify-center p-4">
-                <Loader2 className="h-4 w-4 animate-spin" />
-              </div>
-            ) : (
-              <Select value={selectedPathId} onValueChange={setSelectedPathId} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a path to assign" />
-                </SelectTrigger>
-                <SelectContent>
-                  {paths.map((path) => (
-                    <SelectItem key={path.id} value={path.id}>
-                      {path.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+        
+        {success ? (
+          <div className="flex flex-col items-center justify-center py-12 animate-in fade-in zoom-in duration-300">
+            <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mb-4">
+              <CheckCircle2 className="h-6 w-6 text-green-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-green-700">Assignment Created!</h3>
+            <p className="text-sm text-muted-foreground">Redirecting...</p>
           </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4 py-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="space-y-2">
+              <Label htmlFor="path">Learning Path *</Label>
+              {loadingPaths ? (
+                <div className="flex items-center justify-center p-4 border rounded-md bg-muted/50">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <Select value={selectedPathId} onValueChange={setSelectedPathId} required>
+                  <SelectTrigger className="transition-all focus:ring-2 focus:ring-primary/20">
+                    <SelectValue placeholder="Select a path to assign" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {paths.map((path) => (
+                      <SelectItem key={path.id} value={path.id}>
+                        {path.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="title">Assignment Title *</Label>
-            <Input
-              id="title"
-              placeholder="e.g., Week 1 - Introduction to React"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="title">Assignment Title *</Label>
+              <Input
+                id="title"
+                placeholder="e.g., Week 1 - Introduction to React"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className="transition-all focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
-            <Textarea
-              id="description"
-              placeholder="Additional instructions or notes..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description (Optional)</Label>
+              <Textarea
+                id="description"
+                placeholder="Additional instructions or notes..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                className="resize-none transition-all focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label>Due Date (Optional)</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !dueDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dueDate ? format(dueDate, "PPP") : "Pick a date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={dueDate}
-                  onSelect={setDueDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+            <div className="space-y-2">
+              <Label>Due Date (Optional)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal transition-all hover:bg-muted/50",
+                      !dueDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dueDate ? format(dueDate, "PPP") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dueDate}
+                    onSelect={setDueDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading || !selectedPathId || !title.trim()}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Assignment
-            </Button>
-          </div>
-        </form>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)} className="hover:bg-muted/80">
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={loading || !selectedPathId || !title.trim()}
+                className="transition-all active:scale-95"
+              >
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Create Assignment
+              </Button>
+            </div>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );

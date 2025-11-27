@@ -41,74 +41,78 @@ export function useAssignments(classroomId?: string) {
     setError(null);
 
     try {
+      // 1. Fetch Assignments Base Data
+      let query = supabase
+        .from('assignments')
+        .select('*');
+
       if (profile.role === 'teacher') {
-        // Fetch assignments created by this teacher
-        let query = supabase
-          .from('assignments')
-          .select(`
-            *,
-            classrooms:classroom_id (name),
-            learning_paths:path_id (title)
-          `)
-          .eq('created_by', user.id)
-          .order('created_at', { ascending: false });
-
-        if (classroomId) {
-          query = query.eq('classroom_id', classroomId);
-        }
-
-        const { data, error } = await query;
-
-        if (error) {
-          console.error('Supabase error fetching assignments:', error);
-          throw error;
-        }
-
-        const transformed = data.map((a: any) => ({
-          ...a,
-          classroom_name: a.classrooms?.name,
-          path_title: a.learning_paths?.title
-        }));
-
-        setAssignments(transformed);
+        query = query.eq('created_by', user.id).order('created_at', { ascending: false });
       } else {
-        // Fetch assignments for student with submission status
-        let query = supabase
-          .from('assignments')
-          .select(`
-            *,
-            classrooms:classroom_id (name),
-            learning_paths:path_id (title),
-            assignment_submissions!left (status, progress_percentage)
-          `)
-          .order('due_date', { ascending: true, nullsFirst: false });
-
-        if (classroomId) {
-          query = query.eq('classroom_id', classroomId);
-        }
-
-        const { data, error } = await query;
-
-        if (error) {
-          console.error('Supabase error fetching assignments:', error);
-          throw error;
-        }
-
-        const transformed = data.map((a: any) => {
-          const submission = a.assignment_submissions?.find(
-            (s: any) => s.student_id === user.id
-          );
-          return {
-            ...a,
-            classroom_name: a.classrooms?.name,
-            path_title: a.learning_paths?.title,
-            submission_status: submission?.status || 'not_started',
-            progress_percentage: submission?.progress_percentage || 0
-          };
-        });
-
-        setAssignments(transformed);
+        query = query.order('due_date', { ascending: true, nullsFirst: false });
       }
+
+      if (classroomId) {
+        query = query.eq('classroom_id', classroomId);
+      }
+
+      const { data: assignmentsData, error: assignmentsError } = await query;
+
+      if (assignmentsError) {
+        console.error('Supabase error fetching assignments:', assignmentsError);
+        throw new Error(assignmentsError.message);
+      }
+
+      if (!assignmentsData || assignmentsData.length === 0) {
+        setAssignments([]);
+        return;
+      }
+
+      // 2. Collect IDs for related data
+      const classroomIds = [...new Set(assignmentsData.map((a: any) => a.classroom_id))];
+      const pathIds = [...new Set(assignmentsData.map((a: any) => a.path_id))];
+      const assignmentIds = assignmentsData.map((a: any) => a.id);
+
+      // 3. Fetch Related Data in Parallel
+      const promises = [
+        supabase.from('classrooms').select('id, name').in('id', classroomIds),
+        supabase.from('learning_paths').select('id, title').in('id', pathIds)
+      ];
+
+      // Add submissions fetch for students
+      if (profile.role === 'student') {
+        promises.push(
+          supabase.from('assignment_submissions')
+            .select('assignment_id, status, progress_percentage')
+            .eq('student_id', user.id)
+            .in('assignment_id', assignmentIds)
+        );
+      }
+
+      const [classroomsRes, pathsRes, submissionsRes] = await Promise.all(promises);
+
+      if (classroomsRes.error) console.error('Error fetching classrooms:', classroomsRes.error);
+      if (pathsRes.error) console.error('Error fetching paths:', pathsRes.error);
+      if (submissionsRes && submissionsRes.error) console.error('Error fetching submissions:', submissionsRes.error);
+
+      const classroomsMap = new Map(classroomsRes.data?.map((c: any) => [c.id, c.name]));
+      const pathsMap = new Map(pathsRes.data?.map((p: any) => [p.id, p.title]));
+      const submissionsMap = new Map(submissionsRes?.data?.map((s: any) => [s.assignment_id, s]));
+
+      // 4. Merge Data
+      const transformed = assignmentsData.map((a: any) => {
+        const submission = submissionsMap.get(a.id);
+        return {
+          ...a,
+          classroom_name: classroomsMap.get(a.classroom_id) || 'Unknown Classroom',
+          path_title: pathsMap.get(a.path_id) || 'Unknown Path',
+          submission_status: submission?.status || 'not_started',
+          progress_percentage: submission?.progress_percentage || 0
+        };
+      });
+
+      setAssignments(transformed);
+
     } catch (err: any) {
       console.error('Error fetching assignments:', err);
       setError(err.message);

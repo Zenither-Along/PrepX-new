@@ -6,17 +6,18 @@ import { useProfile } from "@/hooks/useProfile";
 import { useAssignments } from "@/hooks/useAssignments";
 import { useSupabase } from "@/lib/useSupabase";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { CreateAssignmentDialog } from "@/components/assignments/CreateAssignmentDialog";
-import { ArrowLeft, Calendar, Users, BookOpen, Clock, CheckCircle2, Circle, Loader2 } from "lucide-react";
+import { ArrowLeft, Users, BookOpen, BarChart3 } from "lucide-react";
 import Link from "next/link";
-import { format } from "date-fns";
 import { Logo } from "@/components/logo";
+import { AssignmentCard } from "@/components/assignments/AssignmentCard";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ClassAnalyticsDashboard } from "@/components/analytics/ClassAnalyticsDashboard";
 
 export default function ClassroomDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const classroomId = params.id as string;
   
   const { profile, loading: profileLoading } = useProfile();
@@ -58,28 +59,28 @@ export default function ClassroomDetailPage() {
     await createAssignment(classroomId, pathId, title, description, dueDate);
   };
 
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, { variant: any; icon: any; label: string }> = {
-      not_started: { variant: "outline", icon: Circle, label: "Not Started" },
-      in_progress: { variant: "secondary", icon: Clock, label: "In Progress" },
-      completed: { variant: "default", icon: CheckCircle2, label: "Completed" }
-    };
-    
-    const config = variants[status] || variants.not_started;
-    const Icon = config.icon;
-    
-    return (
-      <Badge variant={config.variant} className="gap-1">
-        <Icon className="h-3 w-3" />
-        {config.label}
-      </Badge>
-    );
-  };
-
   if (profileLoading || loadingClassroom) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-background">
+        <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
+          <div className="mx-auto flex h-16 items-center justify-between px-4 md:px-12">
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-10 w-10 rounded-md" />
+              <Skeleton className="h-8 w-32" />
+            </div>
+          </div>
+        </header>
+        <main className="mx-auto max-w-7xl px-4 py-8 md:px-12 space-y-8">
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-1/3" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+          <div className="grid gap-4">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-40 w-full" />
+            ))}
+          </div>
+        </main>
       </div>
     );
   }
@@ -94,6 +95,8 @@ export default function ClassroomDetailPage() {
       </div>
     );
   }
+
+  const isTeacher = profile?.role === 'teacher';
 
   return (
     <div className="min-h-screen bg-background">
@@ -112,21 +115,21 @@ export default function ClassroomDetailPage() {
 
       <main className="mx-auto max-w-7xl px-4 py-8 md:px-12">
         {/* Classroom Header */}
-        <div className="mb-8">
+        <div className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">{classroom.name}</h1>
               {classroom.description && (
-                <p className="mt-2 text-muted-foreground">{classroom.description}</p>
+                <p className="mt-2 text-muted-foreground max-w-2xl">{classroom.description}</p>
               )}
               <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 bg-muted/50 px-2 py-1 rounded-md">
                   <Users className="h-4 w-4" />
-                  <span>Class Code: <code className="font-mono font-bold">{classroom.code}</code></span>
+                  <span>Class Code: <code className="font-mono font-bold text-primary">{classroom.code}</code></span>
                 </div>
               </div>
             </div>
-            {profile?.role === 'teacher' && (
+            {isTeacher && (
               <CreateAssignmentDialog 
                 classroomId={classroomId}
                 onCreate={handleCreateAssignment}
@@ -135,68 +138,75 @@ export default function ClassroomDetailPage() {
           </div>
         </div>
 
-        {/* Assignments Section */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold">Assignments</h2>
-          
-          {assignmentsLoading ? (
-            <div className="flex items-center justify-center p-8">
-              <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
-          ) : assignments.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center p-12 text-center">
-                <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold">No assignments yet</h3>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {profile?.role === 'teacher' 
-                    ? 'Create your first assignment to get started.'
-                    : 'Your teacher hasn\'t assigned any work yet.'}
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4">
-              {assignments.map((assignment) => (
-                <Card key={assignment.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle>{assignment.title}</CardTitle>
-                        <CardDescription className="mt-1">
-                          {assignment.path_title}
-                        </CardDescription>
-                      </div>
-                      {profile?.role === 'student' && assignment.submission_status && (
-                        getStatusBadge(assignment.submission_status)
-                      )}
+        <Tabs defaultValue="assignments" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <TabsList>
+              <TabsTrigger value="assignments" className="gap-2">
+                <BookOpen className="h-4 w-4" />
+                Assignments
+              </TabsTrigger>
+              {isTeacher && (
+                <TabsTrigger value="analytics" className="gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  Analytics
+                </TabsTrigger>
+              )}
+            </TabsList>
+          </div>
+
+          <TabsContent value="assignments" className="space-y-4 animate-in fade-in-50 duration-500">
+            {assignmentsLoading ? (
+              <div className="grid gap-4">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-40 w-full" />
+                ))}
+              </div>
+            ) : assignments.length === 0 ? (
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center justify-center p-12 text-center">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                    <BookOpen className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold">No assignments yet</h3>
+                  <p className="text-sm text-muted-foreground mt-2 max-w-sm">
+                    {isTeacher 
+                      ? 'Create your first assignment to get started. Students will see it here.'
+                      : 'Your teacher hasn\'t assigned any work yet. Check back later!'}
+                  </p>
+                  {isTeacher && (
+                    <div className="mt-6">
+                      <CreateAssignmentDialog 
+                        classroomId={classroomId}
+                        onCreate={handleCreateAssignment}
+                      />
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    {assignment.description && (
-                      <p className="text-sm text-muted-foreground mb-4">{assignment.description}</p>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        {assignment.due_date && (
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-4 w-4" />
-                            <span>Due {format(new Date(assignment.due_date), 'PPP')}</span>
-                          </div>
-                        )}
-                      </div>
-                      <Button asChild>
-                        <Link href={`/path/${assignment.path_id}`}>
-                          {profile?.role === 'student' ? 'Start Assignment' : 'View Path'}
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {assignments.map((assignment, index) => (
+                  <div 
+                    key={assignment.id} 
+                    className="animate-in fade-in slide-in-from-bottom-2"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <AssignmentCard 
+                      assignment={assignment} 
+                      role={profile?.role || 'student'} 
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {isTeacher && (
+            <TabsContent value="analytics" className="animate-in fade-in-50 duration-500">
+              <ClassAnalyticsDashboard classroomId={classroomId} />
+            </TabsContent>
           )}
-        </div>
+        </Tabs>
       </main>
     </div>
   );
