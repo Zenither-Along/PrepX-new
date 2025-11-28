@@ -42,7 +42,7 @@ export default async function ExplorePage({
 
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-full overflow-y-auto bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 items-center justify-between px-4 md:px-12">

@@ -131,7 +131,23 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* For app pages (view and edit), use fixed viewport to prevent browser chrome scroll */
+/* Mobile optimizations for native app feel */
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  /* Better touch scrolling */
+  -webkit-overflow-scrolling: touch;
+  /* Prevent pull-to-refresh on mobile */
+  overscroll-behavior-y: none;
+  /* Smooth touch interactions */
+  touch-action: manipulation;
+}
+
+/* For app pages - fixed viewport to prevent browser chrome scroll */
 body.app-page {
   height: 100dvh;
   overflow: hidden;

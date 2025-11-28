@@ -797,7 +797,7 @@ export default function ViewPathPage() {
       </main>
       
       {/* Assignment Progress Bar */}
-      {currentAssignment && profile?.role === 'student' && (
+      {currentAssignment && profile?.role === 'student' && (!isMobile || activeColumnIndex === 0) && (
         <AssignmentProgressBar
           assignmentTitle={currentAssignment.title}
           currentProgress={calculateProgress()}

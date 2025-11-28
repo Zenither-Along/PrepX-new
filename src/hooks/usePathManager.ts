@@ -8,8 +8,6 @@ export interface LearningPath {
   title: string;
   subtitle: string;
   created_at: string;
-  branchCount?: number;
-  itemCount?: number;
   is_major?: boolean;
   is_public?: boolean;
   original_path_id?: string | null;
@@ -53,30 +51,7 @@ export function usePathManager() {
 
       if (pathsError) throw pathsError;
 
-      // For each path, count branches and items
-      const pathsWithCounts = await Promise.all(
-        (pathsData || []).map(async (path) => {
-          // Count branches
-          const { count: branchCount } = await db
-            .from("branches")
-            .select("*", { count: "exact", head: true })
-            .eq("path_id", path.id);
-
-          // Count items across all branches
-          const { count: itemCount } = await db
-            .from("branch_items")
-            .select("*", { count: "exact", head: true })
-            .eq("path_id", path.id);
-
-          return {
-            ...path,
-            branchCount: branchCount || 0,
-            itemCount: itemCount || 0,
-          };
-        })
-      );
-
-      setPaths(pathsWithCounts);
+      setPaths(pathsData || []);
     } catch (error) {
       console.error("Error fetching paths:", error);
     } finally {

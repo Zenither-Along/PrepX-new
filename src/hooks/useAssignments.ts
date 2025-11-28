@@ -213,12 +213,35 @@ export function useAssignments(classroomId?: string) {
     }
   };
 
+  const deleteAssignment = async (assignmentId: string) => {
+    if (!user || profile?.role !== 'teacher') return;
+
+    try {
+      const { error } = await supabase
+        .from('assignments')
+        .delete()
+        .eq('id', assignmentId);
+
+      if (error) {
+        console.error('Supabase error deleting assignment:', error);
+        throw error;
+      }
+
+      await fetchAssignments();
+    } catch (err: any) {
+      console.error('Error deleting assignment:', err);
+      throw err;
+    }
+  };
+
   return {
     assignments,
     loading,
     error,
     createAssignment,
     updateSubmissionStatus,
+    deleteAssignment,
     refreshAssignments: fetchAssignments
   };
+
 }

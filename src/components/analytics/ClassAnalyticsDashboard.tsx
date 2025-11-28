@@ -67,7 +67,7 @@ export function ClassAnalyticsDashboard({ classroomId }: ClassAnalyticsDashboard
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+        <Card className="col-span-full md:col-span-4">
           <CardHeader>
             <CardTitle>Assignment Completion Rates</CardTitle>
             <CardDescription>Percentage of students who completed each assignment</CardDescription>
@@ -76,7 +76,7 @@ export function ClassAnalyticsDashboard({ classroomId }: ClassAnalyticsDashboard
             <ProgressChart data={chartData} />
           </CardContent>
         </Card>
-        <Card className="col-span-3">
+        <Card className="col-span-full md:col-span-3">
           <CardHeader>
             <CardTitle>Student Progress</CardTitle>
             <CardDescription>Individual student performance</CardDescription>

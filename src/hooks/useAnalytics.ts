@@ -109,6 +109,12 @@ export function useAnalytics(classroomId: string) {
         const completed = studentSubmissions.filter(sub => sub.status === 'completed').length;
         const total = assignments?.length || 0;
         
+        // Calculate average progress across all assignments
+        const totalProgress = studentSubmissions.reduce((acc, sub) => acc + (sub.progress_percentage || 0), 0);
+        // If student hasn't started an assignment, it counts as 0
+        // We divide by total assignments to get the overall class completion
+        const overallCompletion = total > 0 ? Math.round(totalProgress / total) : 0;
+
         // Find last active date
         const lastActive = studentSubmissions
           .map(sub => new Date(sub.last_accessed_at).getTime())
@@ -120,7 +126,7 @@ export function useAnalytics(classroomId: string) {
           student_email: s.profiles?.email || '',
           completed_assignments: completed,
           total_assignments: total,
-          completion_percentage: total > 0 ? Math.round((completed / total) * 100) : 0,
+          completion_percentage: overallCompletion,
           last_active: lastActive ? new Date(lastActive).toISOString() : new Date().toISOString()
         };
       });
@@ -132,13 +138,17 @@ export function useAnalytics(classroomId: string) {
         const assignmentSubmissions = submissions.filter(sub => sub.assignment_id === a.id);
         const completed = assignmentSubmissions.filter(sub => sub.status === 'completed').length;
         const totalStudents = students?.length || 0;
+        
+        // Calculate average progress for this assignment across all students
+        const totalProgress = assignmentSubmissions.reduce((acc, sub) => acc + (sub.progress_percentage || 0), 0);
+        const avgProgress = totalStudents > 0 ? Math.round(totalProgress / totalStudents) : 0;
 
         return {
           assignment_id: a.id,
           title: a.title,
           completed_count: completed,
           total_students: totalStudents,
-          completion_rate: totalStudents > 0 ? Math.round((completed / totalStudents) * 100) : 0
+          completion_rate: avgProgress // Using average progress instead of just completion rate
         };
       });
 

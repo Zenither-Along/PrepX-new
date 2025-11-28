@@ -63,7 +63,7 @@ export function StudentClassroomList({ classrooms, onJoinClass }: StudentClassro
               <CardContent className="pb-4 flex-1">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/30 p-2 rounded-md">
                   <User className="h-4 w-4" />
-                  <span>Instructor</span>
+                  <span>Instructor {classroom.teacher_name || ''}</span>
                 </div>
               </CardContent>
               <CardFooter className="border-t bg-muted/10 pt-4">

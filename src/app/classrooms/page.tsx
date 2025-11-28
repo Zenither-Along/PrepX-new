@@ -9,10 +9,19 @@ import { Logo } from "@/components/logo";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { useEffect } from "react";
 
 export default function ClassroomsPage() {
   const { profile, loading: profileLoading } = useProfile();
   const { classrooms, loading: classroomsLoading, createClassroom, joinClassroom } = useClassrooms();
+
+  // Add app-page class to body for viewport control
+  useEffect(() => {
+    document.body.classList.add('app-page');
+    return () => {
+      document.body.classList.remove('app-page');
+    };
+  }, []);
 
   if (profileLoading || classroomsLoading) {
     return (
@@ -35,7 +44,7 @@ export default function ClassroomsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-full overflow-y-auto bg-background">
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 items-center justify-between px-4 md:px-12">
           <div className="flex items-center gap-4">

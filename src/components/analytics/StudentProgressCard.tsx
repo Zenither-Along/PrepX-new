@@ -16,11 +16,11 @@ export function StudentProgressCard({ student }: StudentProgressCardProps) {
         <Avatar className="h-9 w-9">
           <AvatarFallback>{student.student_name[0]}</AvatarFallback>
         </Avatar>
-        <div className="flex flex-col">
-          <CardTitle className="text-sm font-medium leading-none">
+        <div className="flex flex-col flex-1 min-w-0">
+          <CardTitle className="text-sm font-medium leading-none truncate">
             {student.student_name}
           </CardTitle>
-          <p className="text-xs text-muted-foreground">{student.student_email}</p>
+          <p className="text-xs text-muted-foreground truncate">{student.student_email}</p>
         </div>
         <div className="ml-auto font-bold">
           {student.completion_percentage}%

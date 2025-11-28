@@ -37,12 +37,6 @@ export function AssignmentProgressBar({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">{assignmentTitle}</p>
-              <p className="text-xs text-muted-foreground">
-                {isCompleted 
-                  ? `All ${totalSections} sections completed` 
-                  : `${completedSections} of ${totalSections} sections completed`
-                }
-              </p>
             </div>
             <span className="text-sm font-semibold">{currentProgress}%</span>
           </div>
@@ -53,7 +47,7 @@ export function AssignmentProgressBar({
         {!isCompleted && (
           <Button 
             onClick={onComplete}
-            disabled={isCompleting || currentProgress === 100}
+            disabled={isCompleting || currentProgress < 80}
             className="gap-2"
             size="sm"
           >

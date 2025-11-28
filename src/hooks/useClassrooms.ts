@@ -12,6 +12,7 @@ export interface Classroom {
   color: string;
   created_at: string;
   student_count?: number;
+  teacher_name?: string;
 }
 
 export function useClassrooms() {
@@ -71,7 +72,32 @@ export function useClassrooms() {
 
         // Transform to return just the classroom objects
         const joinedClassrooms = data.map((item: any) => item.classrooms);
-        setClassrooms(joinedClassrooms);
+        
+        // Fetch teacher profiles for these classrooms
+        const teacherIds = joinedClassrooms.map((c: any) => c.teacher_id).filter(Boolean);
+        
+        if (teacherIds.length > 0) {
+          const { data: teacherProfiles, error: profileError } = await supabase
+            .from('profiles')
+            .select('user_id, full_name')
+            .in('user_id', teacherIds);
+          
+          if (!profileError && teacherProfiles) {
+            // Merge teacher names into classrooms
+            const classroomsWithTeachers = joinedClassrooms.map((classroom: any) => {
+              const teacher = teacherProfiles.find((p: any) => p.user_id === classroom.teacher_id);
+              return {
+                ...classroom,
+                teacher_name: teacher?.full_name || 'Unknown Instructor'
+              };
+            });
+            setClassrooms(classroomsWithTeachers);
+          } else {
+            setClassrooms(joinedClassrooms);
+          }
+        } else {
+          setClassrooms(joinedClassrooms);
+        }
       }
     } catch (err: any) {
       console.error('Error fetching classrooms:', err);

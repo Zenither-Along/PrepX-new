@@ -12,7 +12,7 @@ import { Footer } from "@/components/landing/Footer";
 
 export function LandingPage() {
   return (
-    <div className="min-h-full bg-white text-gray-900" data-theme="light" style={{ colorScheme: 'light' }}>
+    <div className="h-full overflow-y-auto bg-white text-gray-900" data-theme="light" style={{ colorScheme: 'light' }}>
       <LandingNav />
       <HeroSection />
       <FeaturesSection />

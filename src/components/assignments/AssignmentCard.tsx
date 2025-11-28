@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, CheckCircle2, Circle, Clock, ArrowRight, BookOpen } from "lucide-react";
+import { Calendar, CheckCircle2, Circle, Clock, ArrowRight, BookOpen, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -23,9 +25,26 @@ interface Assignment {
 interface AssignmentCardProps {
   assignment: Assignment;
   role: 'teacher' | 'student';
+  onDelete?: (id: string) => Promise<void>;
 }
 
-export function AssignmentCard({ assignment, role }: AssignmentCardProps) {
+export function AssignmentCard({ assignment, role, onDelete }: AssignmentCardProps) {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!onDelete) return;
+    
+    const confirmed = confirm("Are you sure you want to delete this assignment? This action cannot be undone.");
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    try {
+      await onDelete(assignment.id);
+    } catch (error) {
+      console.error("Failed to delete assignment:", error);
+      setIsDeleting(false);
+    }
+  };
   const getStatusConfig = (status: string) => {
     const variants: Record<string, { variant: any; icon: any; label: string; color: string }> = {
       not_started: { variant: "outline", icon: Circle, label: "Not Started", color: "text-muted-foreground" },
@@ -75,6 +94,18 @@ export function AssignmentCard({ assignment, role }: AssignmentCardProps) {
               <StatusIcon className="h-3.5 w-3.5" />
               {statusConfig.label}
             </Badge>
+          )}
+
+          {role === 'teacher' && onDelete && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           )}
         </div>
       </CardHeader>
