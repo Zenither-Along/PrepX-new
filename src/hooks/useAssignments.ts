@@ -74,22 +74,25 @@ export function useAssignments(classroomId?: string) {
       const assignmentIds = assignmentsData.map((a: any) => a.id);
 
       // 3. Fetch Related Data in Parallel
-      const promises = [
-        supabase.from('classrooms').select('id, name').in('id', classroomIds),
-        supabase.from('learning_paths').select('id, title').in('id', pathIds)
-      ];
-
-      // Add submissions fetch for students
+      // 3. Fetch Related Data
+      // We fetch these separately to avoid TypeScript union type issues with Promise.all on mixed query builders
+      const classroomsPromise = supabase.from('classrooms').select('id, name').in('id', classroomIds);
+      const pathsPromise = supabase.from('learning_paths').select('id, title').in('id', pathIds);
+      
+      let submissionsPromise: any = Promise.resolve({ data: [], error: null });
+      
       if (profile.role === 'student') {
-        promises.push(
-          supabase.from('assignment_submissions')
+        submissionsPromise = supabase.from('assignment_submissions')
             .select('assignment_id, status, progress_percentage')
             .eq('student_id', user.id)
-            .in('assignment_id', assignmentIds)
-        );
+            .in('assignment_id', assignmentIds);
       }
 
-      const [classroomsRes, pathsRes, submissionsRes] = await Promise.all(promises);
+      const [classroomsRes, pathsRes, submissionsRes] = await Promise.all([
+        classroomsPromise, 
+        pathsPromise, 
+        submissionsPromise
+      ]);
 
       if (classroomsRes.error) console.error('Error fetching classrooms:', classroomsRes.error);
       if (pathsRes.error) console.error('Error fetching paths:', pathsRes.error);
@@ -101,7 +104,7 @@ export function useAssignments(classroomId?: string) {
 
       // 4. Merge Data
       const transformed = assignmentsData.map((a: any) => {
-        const submission = submissionsMap.get(a.id);
+        const submission: any = submissionsMap.get(a.id);
         return {
           ...a,
           classroom_name: classroomsMap.get(a.classroom_id) || 'Unknown Classroom',
@@ -131,6 +134,20 @@ export function useAssignments(classroomId?: string) {
     if (!user || profile?.role !== 'teacher') return null;
 
     try {
+      // Count total content columns in the path
+      const { data: contentColumns, error: countError } = await supabase
+        .from('columns')
+        .select('id', { count: 'exact' })
+        .eq('path_id', pathId)
+        .eq('type', 'content');
+      
+      if (countError) {
+        console.error('Error counting content columns:', countError);
+      }
+      
+      const totalSections = contentColumns?.length || 0;
+      console.log(`Creating assignment with ${totalSections} total sections`);
+      
       const { data, error } = await supabase
         .from('assignments')
         .insert({
@@ -139,7 +156,8 @@ export function useAssignments(classroomId?: string) {
           title,
           description,
           due_date: dueDate?.toISOString(),
-          created_by: user.id
+          created_by: user.id,
+          total_sections: totalSections
         })
         .select()
         .single();
@@ -174,16 +192,23 @@ export function useAssignments(classroomId?: string) {
           progress_percentage: progressPercentage,
           submitted_at: status === 'completed' ? new Date().toISOString() : null,
           last_accessed_at: new Date().toISOString()
+        }, {
+          onConflict: 'assignment_id,student_id'
         });
 
       if (error) {
         console.error('Supabase error updating submission:', error);
+        console.error('Error details:', JSON.stringify(error, null, 2));
         throw error;
       }
 
       await fetchAssignments();
     } catch (err: any) {
       console.error('Error updating submission:', err);
+      console.error('Error message:', err?.message);
+      console.error('Error details:', err?.details);
+      console.error('Error hint:', err?.hint);
+      console.error('Error code:', err?.code);
       throw err;
     }
   };

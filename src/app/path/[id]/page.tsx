@@ -11,6 +11,11 @@ import { ChatColumn } from "@/components/editor/ChatColumn";
 import { QuizList } from "@/components/quiz/QuizList";
 import { cn } from "@/lib/utils";
 import { Column, ColumnItem, ContentSection } from "./edit/types";
+import { useAssignments } from "@/hooks/useAssignments";
+import { useAssignmentProgress } from "@/hooks/useAssignmentProgress";
+import { AssignmentProgressBar } from "@/components/assignments/AssignmentProgressBar";
+import { SectionCompleteCheckbox } from "@/components/assignments/SectionCompleteCheckbox";
+import { useProfile } from "@/hooks/useProfile";
 
 export default function ViewPathPage() {
   const { id } = useParams();
@@ -38,6 +43,18 @@ export default function ViewPathPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [activeColumnIndex, setActiveColumnIndex] = useState(0);
 
+  // Assignment tracking
+  const { assignments, updateSubmissionStatus } = useAssignments();
+  const { profile } = useProfile();
+  const [currentAssignment, setCurrentAssignment] = useState<any>(null);
+  const [totalQuizzes, setTotalQuizzes] = useState(0);
+  const [isCompleting, setIsCompleting] = useState(false);
+  
+  // Section progress tracking
+  const { completedSections, toggleSectionComplete } = useAssignmentProgress(
+    currentAssignment?.id || null
+  );
+
   // Detect mobile viewport
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -57,25 +74,199 @@ export default function ViewPathPage() {
   // ---------------------------------------------------
   // Data fetching
   // ---------------------------------------------------
+
+
+  // Track assignment progress
   useEffect(() => {
-    if (id) {
-        fetchPath();
-        fetchRootColumn();
+    console.log('Assignment Check Effect:', { 
+      pathId: path?.id, 
+      role: profile?.role, 
+      assignmentsCount: assignments.length 
+    });
+
+    if (path && profile?.role === 'student' && assignments.length > 0) {
+      const assignment = assignments.find(a => a.path_id === path.id);
+      console.log('Found Assignment:', assignment);
+      
+      if (assignment && assignment.submission_status === 'not_started') {
+        console.log('Starting assignment:', assignment.id);
+        updateSubmissionStatus(assignment.id, 'in_progress', 0)
+          .then(() => console.log('Successfully updated status to in_progress'))
+          .catch(err => console.error('Failed to update status:', err));
+      }
     }
-  }, [id]);
+  }, [path, profile, assignments]);
+
+  // Track current assignment
+  useEffect(() => {
+    if (path && profile?.role === 'student' && assignments.length > 0) {
+      const assignment = assignments.find(a => a.path_id === path.id);
+      setCurrentAssignment(assignment || null);
+    } else {
+      setCurrentAssignment(null);
+    }
+  }, [path, profile, assignments]);
+
+  // Self-healing: Fix missing total_sections count
+  useEffect(() => {
+    const fixMissingSectionCount = async () => {
+      if (currentAssignment && (currentAssignment.total_sections === 0 || !currentAssignment.total_sections)) {
+        console.log('[Self-Healing] Detected missing total_sections. Fixing...');
+        try {
+          // Count content columns
+          const { count, error } = await db
+            .from('columns')
+            .select('*', { count: 'exact', head: true })
+            .eq('path_id', currentAssignment.path_id)
+            .eq('type', 'content');
+          
+          if (error) throw error;
+          
+          const actualCount = count || 0;
+          console.log('[Self-Healing] Actual content count:', actualCount);
+          
+          if (actualCount > 0) {
+            // Update assignment in DB
+            const { error: updateError } = await db
+              .from('assignments')
+              .update({ total_sections: actualCount })
+              .eq('id', currentAssignment.id);
+              
+            if (updateError) throw updateError;
+            
+            console.log('[Self-Healing] Updated assignment total_sections');
+            
+            // Update local state to reflect change immediately
+            setCurrentAssignment((prev: any) => ({
+              ...prev,
+              total_sections: actualCount
+            }));
+          }
+        } catch (err) {
+          console.error('[Self-Healing] Failed to fix section count:', err);
+        }
+      }
+    };
+    
+    fixMissingSectionCount();
+  }, [currentAssignment?.id, currentAssignment?.total_sections]);
+
+  // Fetch total quiz count for progress calculation
+  const fetchTotalQuizzes = async () => {
+    try {
+      const columnIds = columns.map(c => c.id);
+      const { data, error } = await db
+        .from('quizzes')
+        .select('id', { count: 'exact' })
+        .in('column_id', columnIds);
+      
+      if (error) throw error;
+      setTotalQuizzes(data?.length || 0);
+    } catch (err) {
+      console.error('Error fetching quiz count:', err);
+    }
+  };
+
+  const calculateProgress = () => {
+    if (!currentAssignment) return 0;
+    if (currentAssignment.status === 'completed') return 100;
+    
+    // Use total_sections from the assignment (stored when created)
+    // Fallback to local state if assignment count is missing (self-healing will fix DB)
+    const totalSections = currentAssignment.total_sections || 0;
+    
+    // If explicitly 0, it might be wrong, but we rely on self-healing to fix it.
+    // We can't easily fallback to dynamic count here without re-introducing state.
+    
+    if (totalSections === 0) return 0;
+    
+    // Calculate section progress (80% max)
+    // Ensure we don't divide by zero
+    const safeTotal = totalSections || 1;
+    const sectionProgress = (completedSections.size / safeTotal) * 80;
+    
+    return Math.floor(sectionProgress);
+  };
+
+  const handleCompleteAssignment = async () => {
+    if (!currentAssignment) return;
+    
+    // Show confirmation dialog
+    const confirmed = confirm(
+      'Are you sure you want to mark this assignment as complete? This action will finalize your submission.'
+    );
+    
+    if (!confirmed) return;
+    
+    setIsCompleting(true);
+    try {
+      const finalProgress = 100;
+      await updateSubmissionStatus(currentAssignment.id, 'completed', finalProgress);
+      console.log('Assignment marked as completed');
+    } catch (err) {
+      console.error('Error completing assignment:', err);
+    } finally {
+      setIsCompleting(false);
+    }
+  };
+  
+  const handleToggleSection = async (columnId: string, isCompleted: boolean) => {
+    try {
+      console.log('[Progress Debug] Starting toggle for column:', columnId, 'isCompleted:', isCompleted);
+      
+      await toggleSectionComplete(columnId, isCompleted);
+      
+      // Wait for state to update, then calculate and update progress
+      if (currentAssignment) {
+        // Use total_sections from assignment
+        const totalSections = currentAssignment.total_sections || 0;
+        
+        console.log('[Progress Debug] Total sections from assignment:', totalSections);
+        console.log('[Progress Debug] Current completedSections:', Array.from(completedSections));
+        
+        if (totalSections > 0) {
+          // Create updated set
+          const updatedCompleted = new Set(completedSections);
+          if (isCompleted) {
+            updatedCompleted.add(columnId);
+          } else {
+            updatedCompleted.delete(columnId);
+          }
+          
+          console.log('[Progress Debug] Updated completedSections:', Array.from(updatedCompleted));
+          console.log('[Progress Debug] Completed count:', updatedCompleted.size);
+          
+          // Calculate progress (80% max from sections)
+          const sectionProgress = (updatedCompleted.size / totalSections) * 80;
+          const newProgress = Math.floor(sectionProgress);
+          
+          console.log('[Progress Debug] Calculation:', `(${updatedCompleted.size} / ${totalSections}) * 80 = ${sectionProgress}`);
+          console.log('[Progress Debug] Final progress:', newProgress);
+          
+          await updateSubmissionStatus(
+            currentAssignment.id,
+            newProgress === 100 ? 'completed' : 'in_progress',
+            newProgress
+          );
+        }
+      }
+    } catch (err) {
+      console.error('Error updating section:', err);
+    }
+  };
 
   const fetchPath = async () => {
     try {
       const { data: pathData, error: pathError } = await db
-        .from("learning_paths")
-        .select("*")
-        .eq("id", id)
+        .from('learning_paths')
+        .select('*')
+        .eq('id', id)
         .single();
+
       if (pathError) throw pathError;
       setPath(pathData);
-    } catch (err) {
-      console.error("Error fetching path data:", err);
-      router.push("/");
+    } catch (error) {
+      console.error('Error fetching path:', error);
     } finally {
       setLoading(false);
     }
@@ -242,6 +433,25 @@ export default function ViewPathPage() {
     });
   };
 
+  // ---------------------------------------------------
+  // Effects
+  // ---------------------------------------------------
+  
+  // Fetch path data
+  useEffect(() => {
+    if (id) {
+        fetchPath();
+        fetchRootColumn();
+    }
+  }, [id]);
+
+  // Fetch total quiz count
+  useEffect(() => {
+    if (currentAssignment && columns.length > 0) {
+      fetchTotalQuizzes();
+    }
+  }, [currentAssignment, columns]);
+
   if (loading) return <div className="flex h-screen items-center justify-center">Loading Path…</div>;
   if (!path) return <div className="flex h-screen items-center justify-center">Path not found</div>;
 
@@ -264,12 +474,15 @@ export default function ViewPathPage() {
             {path.title}
           </h1>
         </div>
-        <Button size="sm" asChild className="bg-black text-white hover:bg-gray-800 shrink-0 hidden md:flex">
-          <Link href={`/path/${id}/edit`} className="flex items-center gap-2">
-            <Pencil className="h-4 w-4" />
-            <span className="hidden md:inline">Edit Path</span>
-          </Link>
-        </Button>
+        {/* Hide edit button for students viewing assignments */}
+        {(!currentAssignment || profile?.role !== 'student') && (
+          <Button size="sm" asChild className="bg-black text-white hover:bg-gray-800 shrink-0 hidden md:flex">
+            <Link href={`/path/${id}/edit`} className="flex items-center gap-2">
+              <Pencil className="h-4 w-4" />
+              <span className="hidden md:inline">Edit Path</span>
+            </Link>
+          </Button>
+        )}
       </header>
 
 
@@ -413,9 +626,20 @@ export default function ViewPathPage() {
                       {colSections.length === 0 ? (
                         <p className="text-muted-foreground italic">No content in this section.</p>
                       ) : (
-                        colSections.map(section => (
-                          <ContentRenderer key={section.id} type={section.type} content={section.content} />
-                        ))
+                        <>
+                          {colSections.map(section => (
+                            <ContentRenderer key={section.id} type={section.type} content={section.content} />
+                          ))}
+                          
+                          {/* Section completion checkbox for assignments */}
+                          {currentAssignment && profile?.role === 'student' && (
+                            <SectionCompleteCheckbox
+                              columnId={col.id}
+                              isCompleted={completedSections.has(col.id)}
+                              onToggle={handleToggleSection}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                   )}
@@ -514,9 +738,20 @@ export default function ViewPathPage() {
                             {colSections.length === 0 ? (
                               <p className="text-muted-foreground italic">No content in this section.</p>
                             ) : (
-                              colSections.map(section => (
-                                <ContentRenderer key={section.id} type={section.type} content={section.content} />
-                              ))
+                              <>
+                                {colSections.map(section => (
+                                  <ContentRenderer key={section.id} type={section.type} content={section.content} />
+                                ))}
+                                
+                                {/* Section completion checkbox for assignments */}
+                                {currentAssignment && profile?.role === 'student' && (
+                                  <SectionCompleteCheckbox
+                                    columnId={col.id}
+                                    isCompleted={completedSections.has(col.id)}
+                                    onToggle={handleToggleSection}
+                                  />
+                                )}
+                              </>
                             )}
                           </div>
                       </section>
@@ -560,6 +795,19 @@ export default function ViewPathPage() {
           })}
         </div>
       </main>
+      
+      {/* Assignment Progress Bar */}
+      {currentAssignment && profile?.role === 'student' && (
+        <AssignmentProgressBar
+          assignmentTitle={currentAssignment.title}
+          currentProgress={calculateProgress()}
+          completedSections={completedSections.size}
+          totalSections={currentAssignment.total_sections || 0}
+          status={currentAssignment.submission_status}
+          onComplete={handleCompleteAssignment}
+          isCompleting={isCompleting}
+        />
+      )}
     </div>
   );
 }

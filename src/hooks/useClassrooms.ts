@@ -38,10 +38,9 @@ export function useClassrooms() {
     try {
       if (profile.role === 'teacher') {
         // Fetch classrooms created by this teacher
-        // Temporarily removed classroom_members(count) to debug
         const { data, error } = await supabase
           .from('classrooms')
-          .select('*')
+          .select('*, classroom_members(count)')
           .eq('teacher_id', user.id)
           .order('created_at', { ascending: false });
 
@@ -50,10 +49,10 @@ export function useClassrooms() {
           throw error;
         }
 
-        // Transform data to include student count (mocked for now)
+        // Transform data to include student count
         const transformed = data.map((c: any) => ({
           ...c,
-          student_count: 0 // c.classroom_members?.[0]?.count || 0
+          student_count: c.classroom_members?.[0]?.count || 0
         }));
 
         setClassrooms(transformed);
