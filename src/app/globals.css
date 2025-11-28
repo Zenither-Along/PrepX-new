@@ -132,9 +132,15 @@ body {
 }
 
 /* Mobile optimizations for native app feel */
-html, body {
+html {
   width: 100%;
   height: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  width: 100%;
+  min-height: 100%;
   overflow-x: hidden;
 }
 

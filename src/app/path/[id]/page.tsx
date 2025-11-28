@@ -17,9 +17,13 @@ import { AssignmentProgressBar } from "@/components/assignments/AssignmentProgre
 import { SectionCompleteCheckbox } from "@/components/assignments/SectionCompleteCheckbox";
 import { useProfile } from "@/hooks/useProfile";
 
+import { useSearchParams } from "next/navigation";
+
 export default function ViewPathPage() {
   const { id } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const backUrl = searchParams.get("backUrl");
 
   // Core data
   const [path, setPath] = useState<any>(null);
@@ -464,7 +468,7 @@ export default function ViewPathPage() {
       )}>
         <div className="flex items-center space-x-2 md:space-x-4 min-w-0">
           <Button variant="ghost" size="icon" asChild className="hover:bg-accent hover:text-accent-foreground shrink-0">
-            <Link href="/">
+            <Link href={backUrl || "/"}>
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>

@@ -203,6 +203,7 @@ export default function ClassroomDetailPage() {
                       assignment={assignment} 
                       role={profile?.role || 'student'} 
                       onDelete={isTeacher ? deleteAssignment : undefined}
+                      backUrl={`/classrooms/${classroomId}`}
                     />
                   </div>
                 ))}

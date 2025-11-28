@@ -62,13 +62,15 @@ export default function Home() {
     }
   };
 
-  // Add app-page class to body for viewport control
+  // Add app-page class to body for viewport control (only when logged in)
   useEffect(() => {
-    document.body.classList.add('app-page');
+    if (user) {
+      document.body.classList.add('app-page');
+    }
     return () => {
       document.body.classList.remove('app-page');
     };
-  }, []);
+  }, [user]);
 
   if (!isLoaded) return null;
 

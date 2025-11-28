@@ -26,9 +26,10 @@ interface AssignmentCardProps {
   assignment: Assignment;
   role: 'teacher' | 'student';
   onDelete?: (id: string) => Promise<void>;
+  backUrl?: string;
 }
 
-export function AssignmentCard({ assignment, role, onDelete }: AssignmentCardProps) {
+export function AssignmentCard({ assignment, role, onDelete, backUrl }: AssignmentCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
@@ -145,7 +146,7 @@ export function AssignmentCard({ assignment, role, onDelete }: AssignmentCardPro
             </div>
 
             <Button asChild size="sm" className="gap-2 group-hover:translate-x-1 transition-transform">
-              <Link href={`/path/${assignment.path_id}`}>
+              <Link href={backUrl ? `/path/${assignment.path_id}?backUrl=${encodeURIComponent(backUrl)}` : `/path/${assignment.path_id}`}>
                 {role === 'student' ? (
                   assignment.submission_status === 'not_started' ? 'Start' : 'Continue'
                 ) : 'View Path'}
