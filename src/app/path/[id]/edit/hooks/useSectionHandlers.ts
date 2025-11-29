@@ -6,8 +6,8 @@ export function useSectionHandlers(
 ) {
   const handleAddSection = (
     columnId: string, 
-    type: 'heading' | 'paragraph' | 'image' | 'video' | 'code' | 'subheading' | 'rich-text',
-    initialContent?: string
+    type: 'heading' | 'paragraph' | 'image' | 'video' | 'code' | 'subheading' | 'rich-text' | 'table' | 'list' | 'link' | 'qna',
+    initialContent?: string | any
   ) => {
     // Determine content based on type and initialContent
     let content;
@@ -27,6 +27,14 @@ export function useSectionHandlers(
       content = { html: initialContent || '' };
     } else if (type === 'code') {
       content = { code: initialContent || '', language: 'javascript' };
+    } else if (type === 'table') {
+      content = typeof initialContent === 'string' ? { html: initialContent } : (initialContent || { rows: [], columns: [] });
+    } else if (type === 'list') {
+      content = typeof initialContent === 'object' && Array.isArray(initialContent) ? { items: initialContent } : { items: initialContent ? [initialContent] : [] };
+    } else if (type === 'link') {
+      content = typeof initialContent === 'object' ? initialContent : { url: initialContent || '', title: '' };
+    } else if (type === 'qna') {
+      content = typeof initialContent === 'object' ? initialContent : { question: '', answer: initialContent || '' };
     } else {
       content = { url: initialContent || '' };
     }

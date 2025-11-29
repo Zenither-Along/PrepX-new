@@ -97,12 +97,22 @@ JSON SCHEMA:
       },
       {
         "type": "create_section",
-        "sectionType": "heading" | "paragraph" | "code" | "image" | "video",
-        "content": "Content for the section (or code snippet)"
+        "sectionType": "rich-text" | "code" | "image" | "video" | "table" | "list" | "link" | "qna",
+        "content": "Content for the section (HTML for rich-text, code for code sections, URL for image/video/link, array for list, object with question/answer for qna)"
       }
     ]
   }
 }
+
+SECTION TYPE GUIDANCE:
+- "rich-text": Use for text content with formatting. Provide HTML with semantic tags like <h2>, <h3>, <p>, <ul>, <ol>, <strong>
+- "code": Use for code snippets. Provide the code as a string
+- "image": Use for images. Provide image URL
+- "video": Use for videos. Provide video URL (YouTube, Vimeo, etc.)
+- "table": Use for tabular data. Provide as HTML table or structured data
+- "list": Use for simple lists. Provide as array of items
+- "link": Use for external links. Provide URL and title
+- "qna": Use for Q&A sections. Provide object with "question" and "answer" fields
 
 IMPORTANT:
 - Return ONLY valid JSON.
