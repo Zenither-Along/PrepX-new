@@ -31,10 +31,16 @@ export function RoleSelectionDialog() {
   const handleSelectRole = async (role: "student" | "teacher") => {
     setCreating(true);
     try {
-      await createProfile(role);
-      setOpen(false);
+      const result = await createProfile(role);
+      if (result) {
+        setOpen(false);
+      } else {
+        // If result is null, it means creation failed (handled in hook)
+        alert("Failed to create profile. Please check your connection and try again.");
+      }
     } catch (error) {
       console.error("Failed to create profile:", error);
+      alert("An unexpected error occurred. Please try again.");
     } finally {
       setCreating(false);
     }
@@ -51,31 +57,31 @@ export function RoleSelectionDialog() {
             To get started, please tell us how you plan to use PrepX.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-2 gap-4 py-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
           <Button
             variant="outline"
-            className="h-32 flex flex-col gap-3 hover:border-primary hover:bg-primary/5"
+            className="h-auto py-6 flex flex-col gap-3 hover:border-primary hover:bg-primary/5 whitespace-normal"
             onClick={() => handleSelectRole("student")}
             disabled={creating}
           >
-            <GraduationCap className="h-8 w-8 text-primary" />
+            <GraduationCap className="h-8 w-8 text-primary shrink-0" />
             <div className="text-center">
-              <div className="font-semibold">I'm a Student</div>
-              <div className="text-xs text-muted-foreground mt-1">
+              <div className="font-semibold text-base">I'm a Student</div>
+              <div className="text-xs text-muted-foreground mt-1 leading-snug">
                 I want to learn and track my progress
               </div>
             </div>
           </Button>
           <Button
             variant="outline"
-            className="h-32 flex flex-col gap-3 hover:border-primary hover:bg-primary/5"
+            className="h-auto py-6 flex flex-col gap-3 hover:border-primary hover:bg-primary/5 whitespace-normal"
             onClick={() => handleSelectRole("teacher")}
             disabled={creating}
           >
-            <School className="h-8 w-8 text-primary" />
+            <School className="h-8 w-8 text-primary shrink-0" />
             <div className="text-center">
-              <div className="font-semibold">I'm an Educator</div>
-              <div className="text-xs text-muted-foreground mt-1">
+              <div className="font-semibold text-base">I'm an Educator</div>
+              <div className="text-xs text-muted-foreground mt-1 leading-snug">
                 I want to create classes and assign work
               </div>
             </div>

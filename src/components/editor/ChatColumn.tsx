@@ -3,11 +3,33 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Send, Bot, User, Loader2, Globe, Lightbulb, RefreshCw, BookOpen, Sparkles } from "lucide-react";
+import { X, Send, Bot, User, Loader2, Globe, Lightbulb, RefreshCw, BookOpen, Sparkles, History } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
+import { useChatHistory } from "@/hooks/useChatHistory";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
+// Force rebuild
 
 interface ChatColumnProps {
   columnId: string;
@@ -19,6 +41,7 @@ interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
+  created_at?: string;
 }
 
 type TeachingMode = "socratic" | "eli5" | "expert" | "quiz";
@@ -83,16 +106,27 @@ const EmptyState = ({ topic, onSelect }: { topic: string; onSelect: (text: strin
 );
 
 export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) {
+  // Use chat history hook to load and save messages
+  const { messages: historyMessages, loading: historyLoading, saveMessage, clearHistory } = useChatHistory(columnId);
+  
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isWebSearchEnabled, setIsWebSearchEnabled] = useState(false);
   const [teachingMode, setTeachingMode] = useState<TeachingMode>("socratic");
+  const [showHistory, setShowHistory] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Extract topic from context if available
   const topic = contextData?.title || "this content";
+
+  // Load history messages when they're available
+  useEffect(() => {
+    if (!historyLoading && historyMessages.length > 0) {
+      setMessages(historyMessages);
+    }
+  }, [historyLoading, historyMessages]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -121,6 +155,11 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+
+    // Save user message to database (non-blocking)
+    saveMessage("user", userMessage.content).catch(err => {
+      console.error("Failed to save user message:", err);
+    });
 
     // Reset height
     if (textareaRef.current) {
@@ -175,6 +214,13 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
             }
           });
         }
+
+        // Save completed assistant message to database (non-blocking)
+        if (assistantMessage) {
+          saveMessage("assistant", assistantMessage).catch(err => {
+            console.error("Failed to save assistant message:", err);
+          });
+        }
       }
     } catch (error) {
       console.error("Chat error:", error);
@@ -213,6 +259,11 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
 
     setMessages(prev => [...prev, actionMessage]);
     setIsLoading(true);
+
+    // Save user message to database (non-blocking)
+    saveMessage("user", actionMessage.content).catch(err => {
+      console.error("Failed to save quick action message:", err);
+    });
 
     try {
       const response = await fetch("/api/chat", {
@@ -254,6 +305,13 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
             }
           });
         }
+
+        // Save completed assistant message to database (non-blocking)
+        if (assistantMessage) {
+          saveMessage("assistant", assistantMessage).catch(err => {
+            console.error("Failed to save quick action response:", err);
+          });
+        }
       }
     } catch (error) {
       console.error("Quick action error:", error);
@@ -273,9 +331,99 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
             </div>
             <h3 className="font-semibold text-sm">AI Study Buddy</h3>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-7 w-7 cursor-pointer hover:bg-muted">
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Sheet open={showHistory} onOpenChange={setShowHistory}>
+              <SheetTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-7 w-7 cursor-pointer hover:bg-muted"
+                  disabled={messages.length === 0}
+                >
+                  <History className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[400px] sm:w-[540px]">
+                <SheetHeader>
+                  <SheetTitle>Chat History</SheetTitle>
+                  <SheetDescription>
+                    {messages.length} message{messages.length !== 1 ? 's' : ''}
+                    {messages.length > 0 && messages[0].created_at && (
+                      <> • Started {new Date(messages[0].created_at).toLocaleDateString()}</>
+                    )}
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="mt-6 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+                  {messages.map((msg, idx) => (
+                    <div key={idx} className="space-y-1">
+                      <div className={cn(
+                        "flex items-center gap-2 text-xs",
+                        msg.role === "user" ? "flex-row-reverse" : "flex-row"
+                      )}>
+                        <span className="font-medium">
+                          {msg.role === "user" ? "You" : "AI"}
+                        </span>
+                        {msg.created_at && (
+                          <span className="text-muted-foreground">
+                            {new Date(msg.created_at).toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                      <div className={cn(
+                        "rounded-lg px-3 py-2 text-sm",
+                        msg.role === "user" 
+                          ? "bg-primary text-primary-foreground ml-auto max-w-[90%]" 
+                          : "bg-muted max-w-[90%]"
+                      )}>
+                        {msg.content}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="absolute bottom-4 left-4 right-4">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="destructive" 
+                        className="w-full"
+                        disabled={messages.length === 0}
+                      >
+                        Clear All History
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Clear Chat History?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete all {messages.length} messages in this conversation. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={async () => {
+                            try {
+                              await clearHistory();
+                              setMessages([]);
+                              setShowHistory(false);
+                            } catch (err) {
+                              console.error("Failed to clear history:", err);
+                            }
+                          }}
+                          className="bg-destructive hover:bg-destructive/90"
+                        >
+                          Clear History
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </SheetContent>
+            </Sheet>
+            <Button variant="ghost" size="icon" onClick={onClose} className="h-7 w-7 cursor-pointer hover:bg-muted">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         
         {/* Teaching Mode Selector */}
@@ -304,7 +452,12 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 scroll-smooth pb-24" ref={scrollRef}>
         <div className="space-y-6">
-          {messages.length === 0 && (
+          {historyLoading && (
+            <div className="flex items-center justify-center p-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          )}
+          {!historyLoading && messages.length === 0 && (
             <EmptyState 
               topic={topic} 
               onSelect={(text) => {
@@ -319,6 +472,11 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
                 };
                 setMessages(prev => [...prev, userMessage]);
                 setIsLoading(true);
+                
+                // Save user message to database (non-blocking)
+                saveMessage("user", text).catch(err => {
+                  console.error("Failed to save empty state message:", err);
+                });
                 
                 // Call API directly
                 (async () => {
@@ -355,6 +513,13 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
                           } else {
                             return [...prev, { id: assistantId, role: "assistant" as const, content: assistantMessage }];
                           }
+                        });
+                      }
+
+                      // Save completed assistant message to database (non-blocking)
+                      if (assistantMessage) {
+                        saveMessage("assistant", assistantMessage).catch(err => {
+                          console.error("Failed to save empty state response:", err);
                         });
                       }
                     }
