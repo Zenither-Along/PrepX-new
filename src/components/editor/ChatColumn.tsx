@@ -107,7 +107,16 @@ const EmptyState = ({ topic, onSelect }: { topic: string; onSelect: (text: strin
 
 export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) {
   // Use chat history hook to load and save messages
-  const { messages: historyMessages, loading: historyLoading, saveMessage, clearHistory } = useChatHistory(columnId);
+  const { 
+    messages: historyMessages, 
+    sessions,
+    currentSessionId,
+    loading: historyLoading, 
+    saveMessage, 
+    createSession,
+    deleteSession,
+    setCurrentSessionId
+  } = useChatHistory(columnId);
   
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -123,10 +132,10 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
 
   // Load history messages when they're available
   useEffect(() => {
-    if (!historyLoading && historyMessages.length > 0) {
+    if (!historyLoading) {
       setMessages(historyMessages);
     }
-  }, [historyLoading, historyMessages]);
+  }, [historyLoading, historyMessages, currentSessionId]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -141,6 +150,11 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 96)}px`;
     }
   }, [input]);
+
+  const handleNewChat = async () => {
+    await createSession();
+    // Focus input?
+  };
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -332,91 +346,99 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
             <h3 className="font-semibold text-sm">AI Study Buddy</h3>
           </div>
           <div className="flex items-center gap-1">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7 cursor-pointer hover:bg-muted"
+              onClick={handleNewChat}
+              title="New Chat"
+            >
+              <Sparkles className="h-4 w-4" />
+            </Button>
             <Sheet open={showHistory} onOpenChange={setShowHistory}>
               <SheetTrigger asChild>
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   className="h-7 w-7 cursor-pointer hover:bg-muted"
-                  disabled={messages.length === 0}
                 >
                   <History className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[400px] sm:w-[540px]">
                 <SheetHeader>
-                  <SheetTitle>Chat History</SheetTitle>
+                  <SheetTitle>Conversations</SheetTitle>
                   <SheetDescription>
-                    {messages.length} message{messages.length !== 1 ? 's' : ''}
-                    {messages.length > 0 && messages[0].created_at && (
-                      <> • Started {new Date(messages[0].created_at).toLocaleDateString()}</>
-                    )}
+                    Your past conversations for this topic.
                   </SheetDescription>
                 </SheetHeader>
-                <div className="mt-6 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
-                  {messages.map((msg, idx) => (
-                    <div key={idx} className="space-y-1">
-                      <div className={cn(
-                        "flex items-center gap-2 text-xs",
-                        msg.role === "user" ? "flex-row-reverse" : "flex-row"
-                      )}>
-                        <span className="font-medium">
-                          {msg.role === "user" ? "You" : "AI"}
+                <div className="mt-6 space-y-4 max-h-[calc(100vh-120px)] overflow-y-auto">
+                  {sessions.map((session) => (
+                    <div 
+                      key={session.id} 
+                      className={cn(
+                        "flex items-center justify-between p-3 rounded-lg border transition-colors cursor-pointer",
+                        currentSessionId === session.id 
+                          ? "bg-primary/5 border-primary/50" 
+                          : "bg-card hover:bg-muted/50 border-border"
+                      )}
+                      onClick={() => {
+                        setCurrentSessionId(session.id);
+                        setShowHistory(false);
+                      }}
+                    >
+                      <div className="flex flex-col gap-1 overflow-hidden">
+                        <span className="font-medium text-sm truncate">{session.title}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(session.updated_at).toLocaleString()}
                         </span>
-                        {msg.created_at && (
-                          <span className="text-muted-foreground">
-                            {new Date(msg.created_at).toLocaleString()}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {currentSessionId === session.id && (
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                            Active
                           </span>
                         )}
-                      </div>
-                      <div className={cn(
-                        "rounded-lg px-3 py-2 text-sm",
-                        msg.role === "user" 
-                          ? "bg-primary text-primary-foreground ml-auto max-w-[90%]" 
-                          : "bg-muted max-w-[90%]"
-                      )}>
-                        {msg.content}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Conversation?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete this conversation. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={async () => {
+                                  await deleteSession(session.id);
+                                }}
+                                className="bg-destructive hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                   ))}
-                </div>
-                <div className="absolute bottom-4 left-4 right-4">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button 
-                        variant="destructive" 
-                        className="w-full"
-                        disabled={messages.length === 0}
-                      >
-                        Clear All History
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Clear Chat History?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This will permanently delete all {messages.length} messages in this conversation. This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={async () => {
-                            try {
-                              await clearHistory();
-                              setMessages([]);
-                              setShowHistory(false);
-                            } catch (err) {
-                              console.error("Failed to clear history:", err);
-                            }
-                          }}
-                          className="bg-destructive hover:bg-destructive/90"
-                        >
-                          Clear History
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  
+                  {sessions.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground text-sm">
+                      No conversations yet.
+                    </div>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>

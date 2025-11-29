@@ -48,11 +48,11 @@ export default async function ExplorePage({
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 items-center justify-between px-4 md:px-12">
           <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/">
                 <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
             <Logo width={140} height={48} />
           </div>
           <div className="hidden md:flex items-center gap-4 w-1/3">
@@ -93,9 +93,11 @@ export default async function ExplorePage({
             </Link>
           ))}
           {tagFilter && (
-            <Link href="/explore">
-              <Button variant="ghost" size="sm" className="h-8 whitespace-nowrap">Clear Filter</Button>
-            </Link>
+            <Button variant="ghost" size="sm" className="h-8 whitespace-nowrap" asChild>
+              <Link href="/explore">
+                Clear Filter
+              </Link>
+            </Button>
           )}
         </div>
 
