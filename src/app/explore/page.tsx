@@ -8,6 +8,7 @@ import Link from "next/link";
 import { clonePath } from "@/lib/actions/actions";
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
+import { SignInButton } from "@clerk/nextjs";
 import { Logo } from "@/components/logo";
 
 export default async function ExplorePage({
@@ -26,9 +27,9 @@ export default async function ExplorePage({
     "use server";
     const { userId } = await auth();
     
-    // Redirect to sign-in if not authenticated
+    // This function should only be called by authenticated users
     if (!userId) {
-      redirect("/sign-in");
+      return;
     }
     
     try {
@@ -125,15 +126,22 @@ export default async function ExplorePage({
                   </div>
                 </div>
                 
-                {/* Show clone button if user doesn't own the path (or not logged in) */}
-                {(!userId || userId !== path.user_id) && (
+                {/* Show clone button based on auth status */}
+                {!userId ? (
+                  <SignInButton mode="modal">
+                    <Button size="sm" variant="secondary" className="gap-2">
+                      <Copy className="h-3.5 w-3.5" />
+                      Clone (Sign in)
+                    </Button>
+                  </SignInButton>
+                ) : userId !== path.user_id ? (
                   <form action={handleClone.bind(null, path.id)}>
                     <Button size="sm" variant="secondary" className="gap-2">
                       <Copy className="h-3.5 w-3.5" />
-                      {userId ? "Clone" : "Clone (Sign in)"}
+                      Clone
                     </Button>
                   </form>
-                )}
+                ) : null}
               </CardFooter>
             </Card>
           ))}

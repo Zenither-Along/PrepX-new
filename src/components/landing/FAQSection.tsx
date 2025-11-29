@@ -11,27 +11,27 @@ export function FAQSection() {
   const faqs = [
     {
       question: "Is PrepX free to use?",
-      answer: "PrepX operates on a Freemium model. You can create and explore paths for free. Premium features like unlimited AI generation, advanced quizzes, and the AI Study Buddy will be available with a subscription."
+      answer: "Yes! PrepX is completely free to use. Create unlimited learning paths, use AI generation, manage classrooms, and access all core features at no cost."
     },
     {
-      question: "What AI features are available?",
-      answer: "Currently, you can use the AI Path Generator to instantly create structured courses. We are actively developing an AI Quiz Generator and an interactive AI Study Buddy to personalize your learning even further."
+      question: "What makes PrepX different?",
+      answer: "PrepX combines branching learning paths, AI-powered generation, classroom management, and progress tracking in one platform. It's designed for both individual learners and educators managing entire classrooms."
     },
     {
-      question: "Can I keep my learning paths private?",
-      answer: "Yes! You can choose to keep your paths private or publish them to the community. Collaboration features for teams are also on our roadmap."
+      question: "Can I use PrepX as a teacher?",
+      answer: "Absolutely! Create classrooms, assign learning paths to students, track their progress, manage submissions, and view analytics—all in one place."
     },
     {
-      question: "What's coming next for PrepX?",
-      answer: "We are building a complete AI-powered learning ecosystem. Upcoming features include gamified quizzes, spaced repetition, a mobile app, and real-time collaboration tools."
+      question: "How does the AI path generator work?",
+      answer: "Simply describe what you want to learn, choose your preferences (modules, depth, audience level), and our AI instantly creates a complete structured learning path with branches, topics, and content sections."
     },
     {
-      question: "What kind of content can I add?",
-      answer: "You can add text, images, videos, code snippets, links, and more to your learning nodes. We support Markdown for rich text formatting."
+      question: "Can I keep my paths private?",
+      answer: "Yes! You have full control. Keep paths private for personal use, share them publicly in the explore page, or assign them directly to your classroom students."
     },
     {
       question: "Is there a mobile app?",
-      answer: "PrepX is fully responsive for mobile browsers. A dedicated mobile app is planned for the future to provide an even better on-the-go learning experience."
+      answer: "PrepX is fully responsive and works great on mobile browsers. The entire platform is optimized for both desktop and mobile experiences."
     }
   ];
 

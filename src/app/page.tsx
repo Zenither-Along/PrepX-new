@@ -8,9 +8,8 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { Logo } from "@/components/logo";
 import { LandingPage } from "@/components/LandingPage";
 import { PathCard } from "@/components/home/PathCard";
-import { CreatePathDialog } from "@/components/home/CreatePathDialog";
+import { UnifiedPathDialog } from "@/components/home/UnifiedPathDialog";
 import { EditDescriptionDialog } from "@/components/home/EditDescriptionDialog";
-import { PathGeneratorDialog } from "@/components/path-generator/PathGeneratorDialog";
 import { saveGeneratedPath } from "@/lib/ai/saveGeneratedPath";
 import { usePathManager } from "@/hooks/usePathManager";
 import { useRouter } from "next/navigation";
@@ -120,17 +119,15 @@ export default function Home() {
             <p className="mt-1 text-muted-foreground">Welcome to Your PrepX</p>
           </div>
           
-          <div className="flex gap-2">
-            <PathGeneratorDialog onPathGenerated={handlePathGenerated} />
-            <CreatePathDialog 
-              open={isDialogOpen}
-              onOpenChange={setIsDialogOpen}
-              title={newPathTitle}
-              onTitleChange={setNewPathTitle}
-              onCreate={handleCreatePath}
-              isCreating={isCreating}
-            />
-          </div>
+          <UnifiedPathDialog 
+            open={isDialogOpen}
+            onOpenChange={setIsDialogOpen}
+            title={newPathTitle}
+            onTitleChange={setNewPathTitle}
+            onCreate={handleCreatePath}
+            isCreating={isCreating}
+            onPathGenerated={handlePathGenerated}
+          />
         </div>
 
         {loading ? (
@@ -148,13 +145,14 @@ export default function Home() {
             <p className="mt-2 max-w-sm text-gray-500">
               Start your learning journey by creating your first structured path.
             </p>
-            <CreatePathDialog 
+            <UnifiedPathDialog 
               open={isDialogOpen}
               onOpenChange={setIsDialogOpen}
               title={newPathTitle}
               onTitleChange={setNewPathTitle}
               onCreate={handleCreatePath}
               isCreating={isCreating}
+              onPathGenerated={handlePathGenerated}
               trigger={
                 <Button 
                   className="mt-8" 

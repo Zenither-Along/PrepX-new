@@ -13,10 +13,10 @@ export function CTASection() {
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-500 to-purple-600 px-6 py-24 text-center shadow-2xl sm:px-16">
         <div className="relative z-10 mx-auto max-w-2xl">
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Ready to Start Your Learning Journey?
+            Start Building Your Learning Path Today
           </h2>
           <p className="mx-auto mt-6 text-lg text-blue-100">
-            Join thousands of learners and educators who are already using PrepX to structure their knowledge.
+            Join educators and learners worldwide who are transforming how they teach and learn with PrepX.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             {isSignedIn ? (

@@ -31,19 +31,19 @@ export function HeroSection() {
       <div className="relative mx-auto max-w-7xl px-6 pt-40 pb-40 sm:pt-48 sm:pb-48">
         <div className="text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-sm border border-white/30 px-4 py-2">
-            <span className="text-sm text-white font-medium">✨ New: AI Path Generator & Premium Features</span>
+            <span className="text-sm text-white font-medium">✨ AI-Powered Learning Platform for Everyone</span>
           </div>
           <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-7xl drop-shadow-lg">
-            Master Any Skill with
+            Transform How You
             <br />
             <span className="bg-gradient-to-r from-yellow-300 via-orange-300 to-pink-300 bg-clip-text text-transparent">
-              AI-Powered Clarity
+              Learn & Teach
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-xl text-white drop-shadow-md">
-            Instantly generate structured learning paths, quizzes, and study guides.
+            Create branching learning paths with AI, manage classrooms, track progress, and personalize every learning journey.
             <br />
-            The future of personalized learning is here.
+            <span className="font-semibold">Built for students, educators, and lifelong learners.</span>
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             {isSignedIn ? (
