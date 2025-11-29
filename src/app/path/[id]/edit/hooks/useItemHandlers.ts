@@ -26,6 +26,16 @@ export function useItemHandlers(
   };
 
   const handleItemDelete = (columnId: string, itemId: string) => {
+    // Check if item has a child column
+    const hasChildColumn = editorData.columns.some((c: any) => c.parent_item_id === itemId) || 
+                           (editorData.columnCache && editorData.columnCache.has(itemId));
+    
+    if (hasChildColumn) {
+      if (!window.confirm("This item has a child column. Deleting it will also delete the child column and its content. Are you sure?")) {
+        return;
+      }
+    }
+
     editorData.setItems((prev: Map<string, ColumnItem[]>) => {
       const newMap = new Map(prev);
       const list = newMap.get(columnId) || [];

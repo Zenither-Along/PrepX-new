@@ -10,6 +10,7 @@ interface SortableContentSectionProps {
   content: any;
   onChange: (content: any) => void;
   onDelete: () => void;
+  onSendToAI?: () => void;
 }
 
 export function SortableContentSection({ 

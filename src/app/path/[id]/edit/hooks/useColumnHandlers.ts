@@ -19,6 +19,12 @@ export function useColumnHandlers(
     };
     
     editorData.setColumns((prev: Column[]) => [...prev, newColumn]);
+    
+    // Add to cache so it persists when switching items
+    if (parentItemId) {
+      editorData.setColumnCache((prev: Map<string, Column>) => new Map(prev).set(parentItemId, newColumn));
+    }
+
     editorSave.setNewColumns((prev: Set<string>) => new Set(prev).add(newColumn.id));
     editorSave.setHasUnsavedChanges(true);
     
@@ -53,14 +59,43 @@ export function useColumnHandlers(
       const newCols = [...editorData.columns];
       newCols[index] = { ...newCols[index], title: newTitle };
       editorData.setColumns(newCols);
+      
+      // Update cache if applicable
+      if (column.parent_item_id) {
+        editorData.setColumnCache((prev: Map<string, Column>) => {
+           const newCache = new Map(prev);
+           newCache.set(column.parent_item_id!, { ...column, title: newTitle });
+           return newCache;
+        });
+      }
     }
     
     editorSave.setHasUnsavedChanges(true);
   };
 
   const handleDeleteColumn = (columnId: string) => {
+    // Check if column has content
+    const hasItems = (editorData.items.get(columnId) || []).length > 0;
+    const hasSections = editorData.sections.some((s: any) => s.column_id === columnId);
+    
+    if (hasItems || hasSections) {
+      if (!window.confirm("This column has content. Are you sure you want to delete it? This action cannot be undone.")) {
+        return;
+      }
+    }
+
     // Remove from columns
     editorData.setColumns((prev: Column[]) => prev.filter((c: Column) => c.id !== columnId));
+    
+    // Remove from cache
+    const column = editorData.columns.find((c: Column) => c.id === columnId);
+    if (column && column.parent_item_id) {
+      editorData.setColumnCache((prev: Map<string, Column>) => {
+        const newCache = new Map(prev);
+        newCache.delete(column.parent_item_id!);
+        return newCache;
+      });
+    }
     
     // Track for database deletion
     editorSave.setDeletedColumns((prev: Set<string>) => new Set(prev).add(columnId));

@@ -11,8 +11,18 @@ export function useSectionHandlers(
   ) => {
     // Determine content based on type and initialContent
     let content;
-    if (type === 'heading' || type === 'paragraph' || type === 'subheading') {
-      content = { text: initialContent || '' };
+    let finalType = type;
+
+    // Convert legacy types to rich-text
+    if (type === 'heading') {
+      finalType = 'rich-text';
+      content = { html: `<h2>${initialContent || ''}</h2>` };
+    } else if (type === 'subheading') {
+      finalType = 'rich-text';
+      content = { html: `<h3>${initialContent || ''}</h3>` };
+    } else if (type === 'paragraph') {
+      finalType = 'rich-text';
+      content = { html: `<p>${initialContent || ''}</p>` };
     } else if (type === 'rich-text') {
       content = { html: initialContent || '' };
     } else if (type === 'code') {
@@ -24,7 +34,7 @@ export function useSectionHandlers(
     const newSection = {
       id: `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       column_id: columnId,
-      type,
+      type: finalType,
       content,
       order_index: editorData.sections.filter((s: ContentSection) => s.column_id === columnId).length
     };

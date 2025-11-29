@@ -21,6 +21,9 @@ interface AIAssistantColumnProps {
       sections?: any[];
     };
   };
+  isMobile?: boolean;
+  editingSection?: any;
+  onSectionEdit?: (newContent: any) => void;
 }
 
 interface Message {
@@ -33,12 +36,17 @@ export function AIAssistantColumn({
   width,
   onClose,
   onExecutePlan,
-  context
+  context,
+  isMobile = false,
+  editingSection,
+ onSectionEdit
 }: AIAssistantColumnProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `Hi! I'm your AI assistant. I can help you create learning paths and content.
+      content: editingSection 
+        ? `I'm ready to help you edit this **${editingSection.type}** section. Please tell me what you'd like to change or improve.`
+        : `Hi! I'm your AI assistant. I can help you create learning paths and content.
       
 Currently viewing: **${context.activeColumn ? context.activeColumn.title : context.pathTitle}**
 
@@ -71,7 +79,8 @@ What would you like to create?`
         body: JSON.stringify({
           messages: conversationMessages,
           context: context,
-          jsonMode: true
+          jsonMode: !editingSection, // Only use JSON mode for creating new content, not editing
+          editingSection: editingSection || undefined
         })
       });
 
@@ -80,6 +89,37 @@ What would you like to create?`
         throw new Error(errorData.error || `Request failed with status ${response.status}`);
       }
 
+      // Handle section editing mode - expects plain text response
+      if (editingSection) {
+        const editedContent = await response.text();
+
+        // Call the onSectionEdit callback with edited content
+        if (onSectionEdit) {
+          // Format the content based on section type
+          let formattedContent;
+          if (editingSection.type === 'rich-text') {
+            formattedContent = { html: editedContent };
+          } else if (editingSection.type === 'code') {
+            formattedContent = { code: editedContent, language: editingSection.content.language || 'javascript' };
+          } else {
+            // Try to parse as JSON for other types (image, video, link, etc.)
+            try {
+              formattedContent = JSON.parse(editedContent);
+            } catch (e) {
+              formattedContent = editedContent;
+            }
+          }
+          onSectionEdit(formattedContent);
+        }
+
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: "I've updated the section content. The changes have been applied."
+        }]);
+        return;
+      }
+
+      // Normal mode - expects JSON response
       const data = await response.json();
       
       // Parse the response if it's a string (sometimes Gemini returns stringified JSON)
@@ -107,8 +147,11 @@ What would you like to create?`
 
   return (
     <div 
-      className="flex h-full shrink-0 flex-col border-r border-border bg-card shadow-sm transition-all"
-      style={{ width: `${width}px` }}
+      className={cn(
+        "flex flex-col border-r border-border bg-card shadow-sm transition-all",
+        isMobile ? "fixed inset-0 z-50 w-full h-[100dvh]" : "h-full shrink-0"
+      )}
+      style={!isMobile ? { width: `${width}px` } : undefined}
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border p-4 bg-primary/5">
@@ -176,7 +219,7 @@ What would you like to create?`
       </div>
 
       {/* Input */}
-      <div className="border-t border-border p-4">
+      <div className="border-t border-border p-4 pb-safe">
         <div className="relative">
           <Textarea
             value={input}

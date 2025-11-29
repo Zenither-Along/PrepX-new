@@ -46,6 +46,11 @@ export function useEditorData(id: string | string[] | undefined) {
   // ---------------------------------------------------------------------------
   // Fetch the root column (parent_item_id = null) and its items/sections
   // ---------------------------------------------------------------------------
+  const [columnCache, setColumnCache] = useState<Map<string, Column>>(new Map()); // parent_item_id -> Column
+
+  // ---------------------------------------------------------------------------
+  // Fetch the root column (parent_item_id = null) and its items/sections
+  // ---------------------------------------------------------------------------
   const fetchData = async () => {
     try {
       const { data: rootColumn, error: columnError } = await db
@@ -61,6 +66,8 @@ export function useEditorData(id: string | string[] | undefined) {
       if (rootColumn) {
         setColumns([rootColumn]);
         setActiveColumnIds([rootColumn.id]);
+        // Cache root column (key: 'root')
+        setColumnCache(prev => new Map(prev).set('root', rootColumn));
         await fetchColumnItems(rootColumn.id);
       }
     } catch (e) {
@@ -94,7 +101,12 @@ export function useEditorData(id: string | string[] | undefined) {
         .eq('column_id', columnId)
         .order('order_index', { ascending: true });
       if (error) throw error;
-      setSections(data || []);
+      
+      setSections(prev => {
+        // Remove existing sections for this column and append new ones
+        const others = prev.filter(s => s.column_id !== columnId);
+        return [...others, ...(data || [])];
+      });
     } catch (e) {
       console.error(`Error fetching sections for column ${columnId}:`, e);
     }
@@ -104,8 +116,25 @@ export function useEditorData(id: string | string[] | undefined) {
   // Fetch a child column when an item is selected (breadcrumb navigation)
   // ---------------------------------------------------------------------------
   const fetchChildColumn = async (parentItemId: string) => {
+    // 1. Check Cache First
+    const cachedColumn = columnCache.get(parentItemId);
+    if (cachedColumn) {
+      setColumns(prev => {
+        if (prev.find(c => c.id === cachedColumn.id)) return prev;
+        return [...prev, cachedColumn];
+      });
+      // We assume items/sections are already in state if it's in cache, 
+      // but we can re-fetch if needed (unless it's a temp column)
+      if (!cachedColumn.id.startsWith('temp-')) {
+         // Optional: re-fetch to ensure freshness, but for now trust local state for speed
+         // await fetchColumnItems(cachedColumn.id);
+      }
+      return cachedColumn;
+    }
+
     // Temporary client‑side IDs and AI-generated IDs have no persisted column yet.
     if (parentItemId.startsWith('temp-') || parentItemId.startsWith('ai-item-')) return null;
+    
     try {
       const { data: childColumn, error } = await db
         .from('columns')
@@ -119,6 +148,10 @@ export function useEditorData(id: string | string[] | undefined) {
           if (prev.find(c => c.id === childColumn.id)) return prev;
           return [...prev, childColumn];
         });
+        
+        // Add to cache
+        setColumnCache(prev => new Map(prev).set(parentItemId, childColumn));
+
         // Load its items/sections based on type
         if (childColumn.type === 'branch') {
           await fetchColumnItems(childColumn.id);
@@ -164,5 +197,6 @@ export function useEditorData(id: string | string[] | undefined) {
     setActiveColumnIds,
     fetchChildColumn,
     fetchColumnItems,
+    setColumnCache, // Expose for handlers to update cache
   };
 }

@@ -22,6 +22,7 @@ export function EditorCanvas({
   handleResizeStart,
   children,
   showAIColumn,
+  onSectionSendToAI,
   // Mobile navigation props (optional, default to desktop behavior)
   isMobile = false,
   activeColumnIndex = 0,
@@ -163,6 +164,7 @@ export function EditorCanvas({
         onSectionAdd={(type) => handleAddSection(col.id, type as any)}
         onSectionChange={handleUpdateSection}
         onSectionDelete={handleDeleteSection}
+        onSectionSendToAI={onSectionSendToAI}
         onSectionReorder={(newSections) => handleSectionReorder(col.id, newSections)}
         onDelete={() => handleDeleteColumn(col.id)}
         onBack={activeColumnIndex > 0 ? goBackColumn : undefined}
@@ -247,6 +249,7 @@ export function EditorCanvas({
                     onSectionAdd={(type) => handleAddSection(col.id, type as any)}
                     onSectionChange={handleUpdateSection}
                     onSectionDelete={handleDeleteSection}
+                    onSectionSendToAI={onSectionSendToAI}
                     onSectionReorder={(newSections) => handleSectionReorder(col.id, newSections)}
                     onDelete={() => handleDeleteColumn(col.id)}
                   />

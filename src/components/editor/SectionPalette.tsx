@@ -25,9 +25,6 @@ interface SectionPaletteProps {
 
 const sectionTypes = [
   { type: "rich-text", label: "Rich Text", icon: FileText },
-  { type: "heading", label: "Heading", icon: Type },
-  { type: "subheading", label: "Sub-heading", icon: Type },
-  { type: "paragraph", label: "Paragraph", icon: AlignLeft },
   { type: "image", label: "Image", icon: ImageIcon },
   { type: "video", label: "Video", icon: Video },
   { type: "link", label: "Link", icon: LinkIcon },

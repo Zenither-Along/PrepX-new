@@ -37,12 +37,13 @@ interface DynamicColumnProps {
   onSectionAdd: (type: string) => void;
   onSectionChange: (sectionId: string, content: string) => void;
   onSectionDelete: (sectionId: string) => void;
+  onSectionSendToAI?: (sectionId: string, sectionType: string, sectionContent: any) => void;
   onSectionReorder: (newSections: any[]) => void;
   onDelete?: () => void;
   onClose?: () => void;
   onBack?: () => void;
   headerActions?: React.ReactNode;
-  fullScreen?: boolean; // For mobile full-screen mode
+  fullScreen?: boolean; // For mobile full-screen mode;
 }
 
 export function DynamicColumn({
@@ -53,6 +54,7 @@ export function DynamicColumn({
   onSectionAdd,
   onSectionChange,
   onSectionDelete,
+  onSectionSendToAI,
   onSectionReorder,
   onDelete,
   onClose,
@@ -170,6 +172,7 @@ export function DynamicColumn({
                     content={section.content}
                     onChange={(newContent) => onSectionChange(section.id, newContent)}
                     onDelete={() => onSectionDelete(section.id)}
+                    onSendToAI={onSectionSendToAI ? () => onSectionSendToAI(section.id, section.type, section.content) : undefined}
                   />
                 ))
               )}

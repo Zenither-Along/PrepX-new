@@ -10,6 +10,7 @@ import { EditorHeader } from "./components/EditorHeader";
 import { EditorCanvas } from "./components/EditorCanvas";
 import { AIAssistantPanel } from "./components/AIAssistantPanel";
 import { useExecutePlan } from "./hooks/useExecutePlan";
+import { useAISectionEditor } from "./hooks/useAISectionEditor";
 
 export default function EditorPage() {
   const { id } = useParams();
@@ -29,6 +30,7 @@ export default function EditorPage() {
   const [selectedItems, setSelectedItems] = useState<Map<string, string>>(new Map()); // columnId -> itemId
   const [editingItemId, setEditingItemId] = useState<string | undefined>();
   const [showAIColumn, setShowAIColumn] = useState(false);
+  const [editingSection, setEditingSection] = useState<any | null>(null);
 
   // Mobile navigation state
   const [isMobile, setIsMobile] = useState(false);
@@ -53,6 +55,7 @@ export default function EditorPage() {
   } = useColumnResizer(editorData.columns);
 
   const onExecutePlan = useExecutePlan(editorData, editorSave);
+  const { handleSectionSendToAI } = useAISectionEditor(setShowAIColumn, setEditingSection);
 
   // Add app-page class to body for viewport control
   useEffect(() => {
@@ -66,7 +69,7 @@ export default function EditorPage() {
   if (!editorData.path) return <div className="flex h-screen items-center justify-center">Path not found</div>;
 
   return (
-    <div className="flex h-screen flex-col bg-background text-foreground">
+    <div className="flex h-[100dvh] flex-col bg-background text-foreground">
       <EditorHeader 
         showAIColumn={showAIColumn} 
         setShowAIColumn={setShowAIColumn} 
@@ -84,6 +87,7 @@ export default function EditorPage() {
         columnWidths={columnWidths}
         handleResizeStart={handleResizeStart}
         showAIColumn={showAIColumn}
+        onSectionSendToAI={handleSectionSendToAI}
         isMobile={isMobile}
         activeColumnIndex={activeColumnIndex}
         setActiveColumnIndex={setActiveColumnIndex}
@@ -95,6 +99,9 @@ export default function EditorPage() {
           editorData={editorData}
           editorSave={editorSave}
           onExecutePlan={onExecutePlan}
+          isMobile={isMobile}
+          editingSection={editingSection}
+          setEditingSection={setEditingSection}
         />
       </EditorCanvas>
     </div>

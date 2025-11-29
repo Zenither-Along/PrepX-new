@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2, GripVertical } from "lucide-react";
+import { Trash2, GripVertical, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -23,6 +23,7 @@ interface ContentSectionProps {
   content: any;
   onChange: (content: any) => void;
   onDelete: () => void;
+  onSendToAI?: () => void;
   dragHandleProps?: any;
 }
 
@@ -32,6 +33,7 @@ export function ContentSection({
   content, 
   onChange, 
   onDelete,
+  onSendToAI,
   dragHandleProps,
 }: ContentSectionProps) {
   const [isHovered, setIsHovered] = useState(false);
@@ -110,11 +112,25 @@ export function ContentSection({
         {renderEditor()}
       </div>
 
-      {/* Delete button */}
+      {/* Action buttons */}
       <div className={cn(
-        "absolute right-2 top-1 opacity-0 transition-opacity z-20",
+        "absolute right-2 top-1 opacity-0 transition-opacity z-20 flex gap-1",
         isHovered && "opacity-100"
       )}>
+        {onSendToAI && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-background/80"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSendToAI();
+            }}
+            title="Edit with AI"
+          >
+            <Sparkles className="h-3 w-3" />
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="icon"

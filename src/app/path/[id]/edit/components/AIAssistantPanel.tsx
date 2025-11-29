@@ -7,7 +7,9 @@ export function AIAssistantPanel({
   setShowAIColumn,
   editorData,
   editorSave,
-  onExecutePlan
+  onExecutePlan,
+  editingSection,
+  setEditingSection
 }: any) {
   // We don't need useSectionHandlers here if onExecutePlan is passed from parent
   // But wait, the original code had the logic inside the component.
@@ -18,7 +20,10 @@ export function AIAssistantPanel({
     showAIColumn && (
       <AIAssistantColumn
         width={400}
-        onClose={() => setShowAIColumn(false)}
+        onClose={() => {
+          setShowAIColumn(false);
+          setEditingSection(null); // Clear editing section when closing
+        }}
         onExecutePlan={onExecutePlan}
         context={{
           pathTitle: editorData.path?.title ?? "",
@@ -50,6 +55,18 @@ export function AIAssistantPanel({
                   };
                 })()
               : undefined,
+        }}
+        isMobile={onExecutePlan.isMobile || (editorData as any).isMobile || (window.innerWidth < 768)}
+        editingSection={editingSection}
+        onSectionEdit={(newContent: any) => {
+          // Update the section in editor data
+          editorData.setSections((prev: any[]) => 
+            prev.map((s: any) => 
+              s.id === editingSection.id ? { ...s, content: newContent } : s
+            )
+          );
+          editorSave.setHasUnsavedChanges(true);
+          setEditingSection(null);
         }}
       />
     )

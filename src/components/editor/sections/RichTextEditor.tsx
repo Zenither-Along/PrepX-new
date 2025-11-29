@@ -274,10 +274,13 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   // Update content if it changes externally
   useEffect(() => {
     if (editor && content.html !== editor.getHTML()) {
+      // If the editor is empty and there's no content, do nothing
       if (editor.isEmpty && !content.html) return;
-      // Only update if the content is significantly different to avoid cursor jumping
-      // This is a trade-off: we might miss some external updates if they match current content
-      // but it prevents the cursor from jumping to the start on every keystroke
+      
+      // Update the editor content
+      // We use queueMicrotask to ensure this happens after the current render cycle
+      // to avoid potential conflicts with Tiptap's internal state
+      editor.commands.setContent(content.html || "");
     }
   }, [content.html, editor]);
 

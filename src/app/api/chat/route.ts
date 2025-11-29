@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     // Check for jsonMode and teachingMode
-    const { messages, columnId, context, webSearch, jsonMode, teachingMode } = body;
+    const { messages, columnId, context, webSearch, jsonMode, teachingMode, editingSection } = body;
 
     // Check for API key
     const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
@@ -32,10 +32,49 @@ export async function POST(req: Request) {
       ? context.sections.map((s: any) => `${s.type}: ${s.content}`).join('\n\n')
       : JSON.stringify(context).substring(0, 500);
 
-    // Create system instruction based on teaching mode
+    // Create system instruction based on mode
     let systemInstruction = '';
     
-    if (jsonMode) {
+    if (editingSection) {
+      // Special mode for editing specific sections
+      const sectionTypeInstructions: Record<string, string> = {
+        "rich-text": "This is a rich text section. Return the edited content as clean, semantic HTML. Use tags like <h2>, <h3>, <p>, <ul>, <ol>, <strong>, <em>. Focus on clarity, readability, and proper formatting. Return ONLY the HTML content without explanations.",
+        "code": "This is a code section. Return the improved code with better formatting, comments, and best practices. Maintain the same programming language unless explicitly asked to change it. Return ONLY the code without markdown code blocks or explanations.",
+        "image": "This is an image section. Suggest a better URL or improve the description for the image. Return a JSON object with 'url' and optionally 'alt' or 'caption' fields.",
+        "video": "This is a video section. Suggest a better URL or improve the description for the video. Return a JSON object with 'url' and optionally 'title' or 'description' fields.",
+        "link": "This is a link section. Improve the link URL or description. Return a JSON object with 'url' and 'title' fields.",
+        "list": "This is a list section. Improve the list items for clarity and completeness. Return the list items as an array.",
+        "table": "This is a table section. Improve the table structure and data presentation. Return in an appropriate table format.",
+        "qna": "This is a Q&A section. Improve the question and answer for clarity and educational value. Return a JSON object with 'question' and 'answer' fields."
+      };
+
+      const typeInstruction = sectionTypeInstructions[editingSection.type] || "Edit and improve this content.";
+
+      systemInstruction = `You are an Expert Content Editor for educational materials.
+
+CONTEXT:
+You are editing a specific **${editingSection.type}** section.
+
+CURRENT CONTENT:
+${JSON.stringify(editingSection.content, null, 2)}
+
+YOUR TASK:
+${typeInstruction}
+
+EDITING GUIDELINES:
+1. **Preserve Intent**: Keep the core message and purpose of the original content.
+2. **Enhance Quality**: Improve clarity, grammar, structure, and educational value.
+3. **Be Precise**: Make targeted improvements without unnecessary changes.
+4. **Professional Tone**: Maintain an educational, professional tone.
+5. **Format Correctly**: Return content in the exact format expected for this section type.
+
+IMPORTANT:
+- Return ONLY the edited content in the appropriate format.
+- For rich-text: Return clean HTML without markdown code blocks.
+- For code: Return the code directly without \`\`\` markers.
+- Make substantial improvements while respecting the original intent.
+- Be concise and focused on the editing task.`;
+    } else if (jsonMode) {
       systemInstruction = `You are an AI assistant for a learning path editor.
 Your goal is to help the user create content by generating a structured JSON plan.
 
