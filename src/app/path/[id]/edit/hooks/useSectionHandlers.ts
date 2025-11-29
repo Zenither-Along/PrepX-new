@@ -6,13 +6,15 @@ export function useSectionHandlers(
 ) {
   const handleAddSection = (
     columnId: string, 
-    type: 'heading' | 'paragraph' | 'image' | 'video' | 'code' | 'subheading',
+    type: 'heading' | 'paragraph' | 'image' | 'video' | 'code' | 'subheading' | 'rich-text',
     initialContent?: string
   ) => {
     // Determine content based on type and initialContent
     let content;
     if (type === 'heading' || type === 'paragraph' || type === 'subheading') {
       content = { text: initialContent || '' };
+    } else if (type === 'rich-text') {
+      content = { html: initialContent || '' };
     } else if (type === 'code') {
       content = { code: initialContent || '', language: 'javascript' };
     } else {

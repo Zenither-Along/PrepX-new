@@ -15,6 +15,7 @@ import { ListEditor } from "./sections/ListEditor";
 import { CodeEditor } from "./sections/CodeEditor";
 import { QnAEditor } from "./sections/QnAEditor";
 import { TableEditor } from "./sections/TableEditor";
+import { RichTextEditor } from "./sections/RichTextEditor";
 
 interface ContentSectionProps {
   id: string;
@@ -37,6 +38,8 @@ export function ContentSection({
 
   const renderEditor = () => {
     switch (type) {
+      case "rich-text":
+        return <RichTextEditor content={content} onChange={onChange} />;
       case "heading":
         return <HeadingEditor content={content} onChange={onChange} />;
       case "subheading":
@@ -68,6 +71,7 @@ export function ContentSection({
 
   const getSectionLabel = () => {
     switch (type) {
+      case "rich-text": return "Rich Text";
       case "heading": return "Heading";
       case "subheading": return "Subheading";
       case "paragraph": return "Paragraph";

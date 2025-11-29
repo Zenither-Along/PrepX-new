@@ -13,7 +13,7 @@ import { useEffect } from "react";
 
 export default function ClassroomsPage() {
   const { profile, loading: profileLoading } = useProfile();
-  const { classrooms, loading: classroomsLoading, createClassroom, joinClassroom } = useClassrooms();
+  const { classrooms, loading: classroomsLoading, createClassroom, joinClassroom, updateClassroom, deleteClassroom } = useClassrooms();
 
   // Add app-page class to body for viewport control
   useEffect(() => {
@@ -67,7 +67,9 @@ export default function ClassroomsPage() {
         {profile.role === 'teacher' ? (
           <TeacherClassroomList 
             classrooms={classrooms} 
-            onCreateClass={createClassroom} 
+            onCreateClass={createClassroom}
+            onUpdateClass={updateClassroom}
+            onDeleteClass={deleteClassroom}
           />
         ) : (
           <StudentClassroomList 

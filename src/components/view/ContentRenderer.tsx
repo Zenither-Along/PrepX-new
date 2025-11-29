@@ -11,6 +11,13 @@ interface ContentSectionProps {
 
 export function ContentRenderer({ type, content }: ContentSectionProps) {
   switch (type) {
+    case "rich-text":
+      return (
+        <div 
+          className="prose prose-sm sm:prose-base dark:prose-invert max-w-none mb-6"
+          dangerouslySetInnerHTML={{ __html: content.html || "" }}
+        />
+      );
     case "heading":
       return <h2 className="text-2xl font-bold mb-4">{content.text}</h2>;
     case "subheading":

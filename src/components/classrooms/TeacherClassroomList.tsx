@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { Classroom } from "@/hooks/useClassrooms";
 import { CreateClassDialog } from "./CreateClassDialog";
+import { EditClassDialog } from "./EditClassDialog";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Copy, ExternalLink, MoreVertical, BookOpen } from "lucide-react";
+import { Users, Copy, ExternalLink, MoreVertical, BookOpen, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -13,16 +15,42 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface TeacherClassroomListProps {
   classrooms: Classroom[];
   onCreateClass: (name: string, description: string, color: string) => Promise<any>;
+  onUpdateClass: (id: string, name: string, description: string, color: string) => Promise<any>;
+  onDeleteClass: (id: string) => Promise<boolean>;
 }
 
-export function TeacherClassroomList({ classrooms, onCreateClass }: TeacherClassroomListProps) {
+export function TeacherClassroomList({ classrooms, onCreateClass, onUpdateClass, onDeleteClass }: TeacherClassroomListProps) {
+  const [editingClassroom, setEditingClassroom] = useState<Classroom | null>(null);
+  const [deletingClassroomId, setDeletingClassroomId] = useState<string | null>(null);
+
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
     // Could add toast here
+  };
+
+  const handleDelete = async () => {
+    if (!deletingClassroomId) return;
+    
+    try {
+      await onDeleteClass(deletingClassroomId);
+      setDeletingClassroomId(null);
+    } catch (error) {
+      console.error("Failed to delete classroom:", error);
+    }
   };
 
   const getColorClass = (color: string) => {
@@ -71,13 +99,22 @@ export function TeacherClassroomList({ classrooms, onCreateClass }: TeacherClass
                   <CardTitle className="line-clamp-1 text-lg">{classroom.name}</CardTitle>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="-mr-2 -mt-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="icon" className="-mr-2 -mt-2 h-8 w-8">
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>Edit Details</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">Archive Class</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setEditingClassroom(classroom)}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => setDeletingClassroomId(classroom.id)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Class
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -115,6 +152,33 @@ export function TeacherClassroomList({ classrooms, onCreateClass }: TeacherClass
           ))}
         </div>
       )}
+
+      {editingClassroom && (
+        <EditClassDialog
+          classroom={editingClassroom}
+          open={!!editingClassroom}
+          onOpenChange={(open: boolean) => !open && setEditingClassroom(null)}
+          onUpdate={onUpdateClass}
+        />
+      )}
+
+      <AlertDialog open={!!deletingClassroomId} onOpenChange={(open: boolean) => !open && setDeletingClassroomId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this classroom and all associated data.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

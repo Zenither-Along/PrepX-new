@@ -8,7 +8,8 @@ import {
   ListOrdered, 
   Code, 
   HelpCircle,
-  Table
+  Table,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +24,7 @@ interface SectionPaletteProps {
 }
 
 const sectionTypes = [
+  { type: "rich-text", label: "Rich Text", icon: FileText },
   { type: "heading", label: "Heading", icon: Type },
   { type: "subheading", label: "Sub-heading", icon: Type },
   { type: "paragraph", label: "Paragraph", icon: AlignLeft },

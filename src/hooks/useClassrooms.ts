@@ -185,12 +185,68 @@ export function useClassrooms() {
     }
   };
 
+  const updateClassroom = async (id: string, name: string, description: string, color: string) => {
+    if (!user || profile?.role !== 'teacher') return null;
+
+    try {
+      const { data, error } = await supabase
+        .from('classrooms')
+        .update({
+          name,
+          description,
+          color
+        })
+        .eq('id', id)
+        .eq('teacher_id', user.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase error updating classroom:', error);
+        throw new Error(error.message || 'Failed to update classroom');
+      }
+
+      // Update local state
+      setClassrooms(classrooms.map(c => c.id === id ? { ...c, ...data } : c));
+      return data;
+    } catch (err: any) {
+      console.error('Error updating classroom:', err);
+      throw err;
+    }
+  };
+
+  const deleteClassroom = async (id: string) => {
+    if (!user || profile?.role !== 'teacher') return false;
+
+    try {
+      const { error } = await supabase
+        .from('classrooms')
+        .delete()
+        .eq('id', id)
+        .eq('teacher_id', user.id);
+
+      if (error) {
+        console.error('Supabase error deleting classroom:', error);
+        throw new Error(error.message || 'Failed to delete classroom');
+      }
+
+      // Update local state
+      setClassrooms(classrooms.filter(c => c.id !== id));
+      return true;
+    } catch (err: any) {
+      console.error('Error deleting classroom:', err);
+      throw err;
+    }
+  };
+
   return {
     classrooms,
     loading,
     error,
     createClassroom,
     joinClassroom,
+    updateClassroom,
+    deleteClassroom,
     refreshClassrooms: fetchClassrooms
   };
 }
