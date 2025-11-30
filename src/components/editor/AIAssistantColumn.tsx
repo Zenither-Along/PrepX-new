@@ -101,34 +101,43 @@ What would you like to create?`
             formattedContent = { html: editedContent };
           } else if (editingSection.type === 'code') {
             formattedContent = { code: editedContent, language: editingSection.content.language || 'javascript' };
-          } else if (editingSection.type === 'table') {
-            // Expect JSON with a 'data' field (2D array)
-            try {
-              const parsed = JSON.parse(editedContent);
-              if (parsed.data && Array.isArray(parsed.data)) {
-                formattedContent = { data: parsed.data };
-              } else {
-                // Invalid format, keep original
+          } else {
+            // Clean up the response - remove markdown code blocks if present
+            let cleanContent = editedContent.trim();
+            if (cleanContent.startsWith('```')) {
+              cleanContent = cleanContent.replace(/^```(json)?\n?/, '').replace(/\n?```$/, '');
+            }
+
+            if (editingSection.type === 'table') {
+              // Expect JSON with a 'data' field (2D array)
+              try {
+                const parsed = JSON.parse(cleanContent);
+                if (parsed.data && Array.isArray(parsed.data)) {
+                  formattedContent = { data: parsed.data };
+                } else {
+                  // Invalid format, keep original
+                  formattedContent = { data: editingSection.content.data || [] };
+                }
+              } catch (e) {
+                console.error("Failed to parse table JSON:", e);
+                // Parsing failed, keep original
                 formattedContent = { data: editingSection.content.data || [] };
               }
-            } catch (e) {
-              // Parsing failed, keep original
-              formattedContent = { data: editingSection.content.data || [] };
-            }
-          } else if (editingSection.type === 'list') {
-            // Expect JSON array of strings
-            try {
-              const parsed = JSON.parse(editedContent);
-              formattedContent = { items: Array.isArray(parsed) ? parsed : [] };
-            } catch (e) {
-              formattedContent = { items: [] };
-            }
-          } else {
-            // Try to parse as JSON for other types (image, video, link, etc.)
-            try {
-              formattedContent = JSON.parse(editedContent);
-            } catch (e) {
-              formattedContent = editedContent;
+            } else if (editingSection.type === 'list') {
+              // Expect JSON array of strings
+              try {
+                const parsed = JSON.parse(cleanContent);
+                formattedContent = { items: Array.isArray(parsed) ? parsed : [] };
+              } catch (e) {
+                formattedContent = { items: [] };
+              }
+            } else {
+              // Try to parse as JSON for other types (image, video, link, etc.)
+              try {
+                formattedContent = JSON.parse(cleanContent);
+              } catch (e) {
+                formattedContent = cleanContent;
+              }
             }
           }
           onSectionEdit(formattedContent);
