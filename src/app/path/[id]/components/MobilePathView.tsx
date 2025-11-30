@@ -1,5 +1,11 @@
-import { ArrowLeft, MessageSquare, Brain } from "lucide-react";
+import { ArrowLeft, Sparkles, MessageSquare, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { ContentRenderer } from "@/components/view/ContentRenderer";
 import { ChatColumn } from "@/components/editor/ChatColumn";
@@ -13,14 +19,14 @@ interface MobilePathViewProps {
   items: Map<string, ColumnItem[]>;
   sections: ContentSection[];
   selectedItems: Map<string, string>;
-  activePanels: Map<string, 'chat' | 'quiz' | null>;
+  activePanels: Map<string, 'chat' | 'quiz' | 'tools' | null>;
   currentAssignment: any;
   completedSections: Set<string>;
   profile: any;
   pathId: string;
   onSelectItem: (columnId: string, itemId: string) => void;
   goBackColumn: () => void;
-  togglePanel: (columnId: string, panel: 'chat' | 'quiz') => void;
+  togglePanel: (columnId: string, panel: 'chat' | 'quiz' | 'tools') => void;
   handleToggleSection: (columnId: string, isCompleted: boolean) => Promise<void>;
 }
 
@@ -113,44 +119,53 @@ export function MobilePathView({
             )}
             <h2 className="text-xl font-bold truncate">{title}</h2>
           </div>
-          <div className="flex items-center gap-1">
-            <Button 
-              variant={activePanel === 'quiz' ? "default" : "ghost"} 
-              size="icon" 
-              className="h-8 w-8 shrink-0"
-              onClick={() => togglePanel(col.id, 'quiz')}
-            >
-              <Brain className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant={activePanel === 'chat' ? "default" : "ghost"} 
-              size="icon" 
-              className="h-8 w-8 shrink-0"
-              onClick={() => togglePanel(col.id, 'chat')}
-            >
-              <MessageSquare className="h-4 w-4" />
-            </Button>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant={activePanel === 'chat' || activePanel === 'quiz' ? "default" : "ghost"} 
+                size="icon" 
+                className="h-8 w-8 shrink-0"
+              >
+                <Sparkles className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => togglePanel(col.id, 'chat')}>
+                <MessageSquare className="h-4 w-4 mr-2" />
+                AI Chat
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => togglePanel(col.id, 'quiz')}>
+                <Brain className="h-4 w-4 mr-2" />
+                Quiz Generator
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         {/* For root content column (rare but possible), we might need the action buttons if header is hidden */}
         {activeColumnIndex === 0 && (
-           <div className="p-2 flex justify-end gap-2 border-b border-border/50">
-              <Button 
-                variant={activePanel === 'quiz' ? "default" : "ghost"} 
-                size="sm" 
-                onClick={() => togglePanel(col.id, 'quiz')}
-              >
-                <Brain className="h-4 w-4 mr-2" />
-                Quiz
-              </Button>
-              <Button 
-                variant={activePanel === 'chat' ? "default" : "ghost"} 
-                size="sm" 
-                onClick={() => togglePanel(col.id, 'chat')}
-              >
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Chat
-              </Button>
+           <div className="p-2 border-b border-border/50">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant={activePanel === 'chat' || activePanel === 'quiz' ? "default" : "ghost"} 
+                  size="sm" 
+                  className="w-full"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  AI Tools
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => togglePanel(col.id, 'chat')}>
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  AI Chat
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => togglePanel(col.id, 'quiz')}>
+                  <Brain className="h-4 w-4 mr-2" />
+                  Quiz Generator
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
            </div>
         )}
         {/* Content area */}

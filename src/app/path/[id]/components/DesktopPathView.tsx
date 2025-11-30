@@ -1,9 +1,10 @@
-import { ArrowLeft, MessageSquare, Brain } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ContentRenderer } from "@/components/view/ContentRenderer";
 import { ChatColumn } from "@/components/editor/ChatColumn";
 import { QuizList } from "@/components/quiz/QuizList";
+import { AIToolsPanel } from "@/components/view/AIToolsPanel";
 import { SectionCompleteCheckbox } from "@/components/assignments/SectionCompleteCheckbox";
 import { Column, ColumnItem, ContentSection } from "../edit/types";
 
@@ -12,14 +13,14 @@ interface DesktopPathViewProps {
   items: Map<string, ColumnItem[]>;
   sections: ContentSection[];
   selectedItems: Map<string, string>;
-  activePanels: Map<string, 'chat' | 'quiz' | null>;
+  activePanels: Map<string, 'chat' | 'quiz' | 'tools' | null>;
   columnWidths: Map<string, number>;
   currentAssignment: any;
   completedSections: Set<string>;
   profile: any;
   pathId: string;
   onSelectItem: (columnId: string, itemId: string) => void;
-  togglePanel: (columnId: string, panel: 'chat' | 'quiz') => void;
+  togglePanel: (columnId: string, panel: 'chat' | 'quiz' | 'tools') => void;
   handleToggleSection: (columnId: string, isCompleted: boolean) => Promise<void>;
   handleResizeStart: (e: React.MouseEvent, columnId: string, currentWidth: number) => void;
 }
@@ -99,29 +100,17 @@ export function DesktopPathView({
             return (
                 <div key={col.id} className="relative flex shrink-0 gap-4 border-x border-border" style={{ width: `${totalWidth}px` }}>
                   <section className="flex-1 flex flex-col overflow-hidden bg-muted/30">
-                      {/* Header section */}
                       <div className="p-3 border-b border-border flex items-center justify-between">
                         <h2 className="text-xl font-bold">{title}</h2>
-                        <div className="flex items-center gap-1">
-                          <Button 
-                            variant={activePanel === 'quiz' ? "default" : "ghost"} 
-                            size="icon" 
-                            className="h-8 w-8 shrink-0 cursor-pointer"
-                            onClick={() => togglePanel(col.id, 'quiz')}
-                            title="Quizzes"
-                          >
-                            <Brain className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant={activePanel === 'chat' ? "default" : "ghost"} 
-                            size="icon" 
-                            className="h-8 w-8 shrink-0 cursor-pointer"
-                            onClick={() => togglePanel(col.id, 'chat')}
-                            title="AI Assistant"
-                          >
-                            <MessageSquare className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        <Button 
+                          variant={activePanel === 'tools' || activePanel === 'chat' || activePanel === 'quiz' ? "default" : "ghost"} 
+                          size="icon" 
+                          className="h-8 w-8 shrink-0 cursor-pointer"
+                          onClick={() => togglePanel(col.id, 'tools')}
+                          title="AI Tools"
+                        >
+                          <Sparkles className="h-4 w-4" />
+                        </Button>
                       </div>
                       {/* Content area */}
                       <div className="flex-1 overflow-y-auto p-6 space-y-2 no-scrollbar">
@@ -146,7 +135,14 @@ export function DesktopPathView({
                       </div>
                   </section>
                   
-                  {/* Side Panel (Chat or Quiz) */}
+                  {/* Side Panels */}
+                  {activePanel === 'tools' && (
+                    <AIToolsPanel 
+                      onClose={() => togglePanel(col.id, 'tools')}
+                      onSelectTool={(tool) => togglePanel(col.id, tool)}
+                    />
+                  )}
+
                   {activePanel === 'chat' && (
                     <ChatColumn 
                       columnId={col.id}

@@ -58,7 +58,7 @@ export default function ViewPathPage() {
   });
 
   // Local UI State
-  const [activePanels, setActivePanels] = useState<Map<string, 'chat' | 'quiz' | null>>(new Map());
+  const [activePanels, setActivePanels] = useState<Map<string, 'chat' | 'quiz' | 'tools' | null>>(new Map());
   const [isMobile, setIsMobile] = useState(false);
 
   // Detect mobile viewport
@@ -77,7 +77,7 @@ export default function ViewPathPage() {
     };
   }, []);
 
-  const togglePanel = (columnId: string, panel: 'chat' | 'quiz') => {
+  const togglePanel = (columnId: string, panel: 'chat' | 'quiz' | 'tools') => {
     setActivePanels(prev => {
       const next = new Map(prev);
       if (next.get(columnId) === panel) {
