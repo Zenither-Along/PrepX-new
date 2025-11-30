@@ -11,6 +11,7 @@ export interface LearningPath {
   is_major?: boolean;
   is_public?: boolean;
   original_path_id?: string | null;
+  status?: 'generating' | 'ready' | 'error';
 }
 
 export function usePathManager() {
@@ -172,6 +173,7 @@ export function usePathManager() {
     handleSaveDescription,
     handleSetMajor,
     handleUnsetMajor,
-    handlePublish
+    handlePublish,
+    fetchPaths
   };
 }

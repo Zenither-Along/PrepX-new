@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { RoleSelectionDialog } from "@/components/auth/RoleSelectionDialog";
+import { PathGenerationProvider } from "@/context/PathGenerationContext";
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-instrument-sans",
@@ -38,8 +39,10 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
-            <RoleSelectionDialog />
+            <PathGenerationProvider>
+              {children}
+              <RoleSelectionDialog />
+            </PathGenerationProvider>
           </ThemeProvider>
         </body>
       </html>
