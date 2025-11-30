@@ -180,7 +180,7 @@ What would you like to create?`
     <div 
       className={cn(
         "flex flex-col border-r border-border bg-card shadow-sm transition-all",
-        isMobile ? "fixed inset-0 z-50 w-full h-[100dvh]" : "h-full shrink-0"
+        isMobile ? "fixed inset-0 z-50 w-full h-dvh" : "h-full shrink-0"
       )}
       style={!isMobile ? { width: `${width}px` } : undefined}
     >

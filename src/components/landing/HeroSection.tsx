@@ -11,7 +11,7 @@ export function HeroSection() {
   return (
     <section className="relative overflow-hidden">
       {/* Sky Blue Gradient Base - Darker tones */}
-      <div className="absolute inset-0 bg-gradient-to-b from-blue-600 via-blue-500 to-blue-400" />
+      <div className="absolute inset-0 bg-linear-to-b from-blue-600 via-blue-500 to-blue-400" />
       
       {/* Sky Image with Blend Mode */}
       <div 
@@ -23,10 +23,10 @@ export function HeroSection() {
       />
       
       {/* Center darkening for text area */}
-      <div className="absolute inset-0 bg-gradient-to-b from-blue-900/30 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-b from-blue-900/30 via-transparent to-transparent" />
       
       {/* Gradient fade to background at bottom */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent from-50% via-transparent via-70% to-white" />
+      <div className="absolute inset-0 bg-linear-to-b from-transparent from-50% via-transparent via-70% to-white" />
       
       <div className="relative mx-auto max-w-7xl px-6 pt-40 pb-40 sm:pt-48 sm:pb-48">
         <div className="text-center">
@@ -36,7 +36,7 @@ export function HeroSection() {
           <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-7xl drop-shadow-lg">
             Transform How You
             <br />
-            <span className="bg-gradient-to-r from-yellow-300 via-orange-300 to-pink-300 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-yellow-300 via-orange-300 to-pink-300 bg-clip-text text-transparent">
               Learn & Teach
             </span>
           </h1>

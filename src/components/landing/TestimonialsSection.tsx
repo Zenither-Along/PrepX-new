@@ -43,8 +43,8 @@ export function TestimonialsSection() {
   return (
     <section className="relative mx-auto max-w-7xl px-6 py-24 overflow-hidden">
       {/* Side fade gradients */}
-      <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-      <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+      <div className="absolute left-0 top-0 bottom-0 w-32 bg-linear-to-r from-white to-transparent z-10 pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-32 bg-linear-to-l from-white to-transparent z-10 pointer-events-none" />
       
       <div className="text-center mb-16">
         <div className="mb-4 inline-flex items-center gap-2 text-sm text-gray-600">
@@ -61,7 +61,7 @@ export function TestimonialsSection() {
       
       <div className="flex flex-col gap-8">
         {/* First Row - Scrolls Left */}
-        <div className="flex w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_20%,white_80%,transparent)]">
+        <div className="flex w-full overflow-hidden mask-[linear-gradient(to_right,transparent,white_20%,white_80%,transparent)]">
           <div className="flex min-w-full shrink-0 animate-scroll-left gap-6 py-4 hover:[animation-play-state:paused]">
             {[...firstRow, ...firstRow, ...firstRow, ...firstRow].map((testimonial, i) => (
               <div key={i} className="w-[350px] shrink-0">
@@ -77,7 +77,7 @@ export function TestimonialsSection() {
         </div>
 
         {/* Second Row - Scrolls Right */}
-        <div className="flex w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_20%,white_80%,transparent)]">
+        <div className="flex w-full overflow-hidden mask-[linear-gradient(to_right,transparent,white_20%,white_80%,transparent)]">
           <div className="flex min-w-full shrink-0 animate-scroll-right gap-6 py-4 hover:[animation-play-state:paused]">
             {[...secondRow, ...secondRow, ...secondRow, ...secondRow].map((testimonial, i) => (
               <div key={i} className="w-[350px] shrink-0">

@@ -69,7 +69,7 @@ export default function EditorPage() {
   if (!editorData.path) return <div className="flex h-screen items-center justify-center">Path not found</div>;
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-background text-foreground">
+    <div className="flex h-dvh flex-col bg-background text-foreground">
       <EditorHeader 
         showAIColumn={showAIColumn} 
         setShowAIColumn={setShowAIColumn} 

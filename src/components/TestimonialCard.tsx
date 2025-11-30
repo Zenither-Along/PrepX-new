@@ -16,7 +16,7 @@ export function TestimonialCard({ quote, name, role, index }: TestimonialCardPro
         &quot;{quote}&quot;
       </p>
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center text-white font-semibold text-sm">
+        <div className="h-10 w-10 rounded-full bg-linear-to-br from-blue-400 to-purple-400 flex items-center justify-center text-white font-semibold text-sm">
           {name.split(' ').map(n => n[0]).join('')}
         </div>
         <div>

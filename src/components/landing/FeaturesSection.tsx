@@ -21,7 +21,7 @@ export function FeaturesSection() {
       <div className="grid gap-6 md:grid-cols-2 max-w-5xl mx-auto">
         {/* Feature 1: Branching Paths */}
         <div className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6">
-          <div className="mb-4 aspect-video overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-6 flex items-center justify-center relative transition-transform duration-300 group-hover:scale-105">
+          <div className="mb-4 aspect-video overflow-hidden rounded-xl bg-linear-to-br from-blue-50 via-purple-50 to-pink-50 p-6 flex items-center justify-center relative transition-transform duration-300 group-hover:scale-105">
             {/* Central node */}
             <div className="absolute top-1/2 left-8 -translate-y-1/2 w-4 h-4 rounded-full bg-blue-500 shadow-md z-10" />
             
@@ -50,7 +50,7 @@ export function FeaturesSection() {
 
         {/* Feature 2: AI Assistant */}
         <div className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6">
-          <div className="mb-4 aspect-video overflow-hidden rounded-xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 p-6 flex items-center justify-center relative transition-transform duration-300 group-hover:scale-105">
+          <div className="mb-4 aspect-video overflow-hidden rounded-xl bg-linear-to-br from-emerald-50 via-teal-50 to-cyan-50 p-6 flex items-center justify-center relative transition-transform duration-300 group-hover:scale-105">
             {/* AI sparkle animation elements */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="relative w-16 h-16">
@@ -85,17 +85,17 @@ export function FeaturesSection() {
 
         {/* Feature 3: Classroom Management */}
         <div className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6">
-          <div className="mb-4 aspect-video overflow-hidden rounded-xl bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 p-6 flex items-center justify-center relative transition-transform duration-300 group-hover:scale-105">
+          <div className="mb-4 aspect-video overflow-hidden rounded-xl bg-linear-to-br from-orange-50 via-amber-50 to-yellow-50 p-6 flex items-center justify-center relative transition-transform duration-300 group-hover:scale-105">
             {/* Teacher/main user */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 shadow-lg flex items-center justify-center">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-linear-to-br from-orange-400 to-amber-500 shadow-lg flex items-center justify-center">
               <div className="w-5 h-5 rounded-full bg-white/30" />
             </div>
             
             {/* Student circles arranged around */}
-            <div className="absolute top-[20%] left-[30%] w-8 h-8 rounded-full bg-gradient-to-br from-amber-300 to-yellow-400 shadow-md" />
-            <div className="absolute top-[20%] right-[30%] w-8 h-8 rounded-full bg-gradient-to-br from-orange-300 to-amber-400 shadow-md" />
-            <div className="absolute bottom-[20%] left-[25%] w-8 h-8 rounded-full bg-gradient-to-br from-yellow-300 to-amber-300 shadow-md" />
-            <div className="absolute bottom-[20%] right-[25%] w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 shadow-md" />
+            <div className="absolute top-[20%] left-[30%] w-8 h-8 rounded-full bg-linear-to-br from-amber-300 to-yellow-400 shadow-md" />
+            <div className="absolute top-[20%] right-[30%] w-8 h-8 rounded-full bg-linear-to-br from-orange-300 to-amber-400 shadow-md" />
+            <div className="absolute bottom-[20%] left-[25%] w-8 h-8 rounded-full bg-linear-to-br from-yellow-300 to-amber-300 shadow-md" />
+            <div className="absolute bottom-[20%] right-[25%] w-8 h-8 rounded-full bg-linear-to-br from-amber-400 to-orange-400 shadow-md" />
             
             {/* Connection lines */}
             <svg className="absolute inset-0 w-full h-full opacity-30" viewBox="0 0 200 100">
@@ -113,22 +113,22 @@ export function FeaturesSection() {
 
         {/* Feature 4: Rich Content & Progress */}
         <div className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6">
-          <div className="mb-4 aspect-video overflow-hidden rounded-xl bg-gradient-to-br from-indigo-50 via-violet-50 to-purple-50 p-6 flex items-center justify-center relative transition-transform duration-300 group-hover:scale-105">
+          <div className="mb-4 aspect-video overflow-hidden rounded-xl bg-linear-to-br from-indigo-50 via-violet-50 to-purple-50 p-6 flex items-center justify-center relative transition-transform duration-300 group-hover:scale-105">
             {/* Content cards */}
             <div className="absolute inset-6 grid grid-cols-3 gap-2">
               {/* Video card */}
               <div className="rounded-lg bg-white shadow-sm p-2 flex items-center justify-center">
-                <div className="w-4 h-4 rounded bg-gradient-to-br from-indigo-400 to-indigo-500" />
+                <div className="w-4 h-4 rounded bg-linear-to-br from-indigo-400 to-indigo-500" />
               </div>
               
               {/* Image card */}
               <div className="rounded-lg bg-white shadow-sm p-2 flex items-center justify-center">
-                <div className="w-4 h-4 rounded bg-gradient-to-br from-violet-400 to-violet-500" />
+                <div className="w-4 h-4 rounded bg-linear-to-br from-violet-400 to-violet-500" />
               </div>
               
               {/* Quiz card */}
               <div className="rounded-lg bg-white shadow-sm p-2 flex items-center justify-center">
-                <div className="w-4 h-4 rounded-full bg-gradient-to-br from-purple-400 to-purple-500" />
+                <div className="w-4 h-4 rounded-full bg-linear-to-br from-purple-400 to-purple-500" />
               </div>
               
               {/* Progress bar spanning bottom */}

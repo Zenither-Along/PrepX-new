@@ -190,9 +190,9 @@ export function QuizViewer({ quizId, onComplete }: QuizViewerProps) {
                       {index + 1}. {q.question_text}
                     </CardTitle>
                     {isCorrect ? (
-                      <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                      <CheckCircle className="h-5 w-5 text-green-500 shrink-0" />
                     ) : (
-                      <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+                      <XCircle className="h-5 w-5 text-red-500 shrink-0" />
                     )}
                   </div>
                 </CardHeader>
@@ -251,7 +251,7 @@ export function QuizViewer({ quizId, onComplete }: QuizViewerProps) {
           {currentQuestion.question_type === 'multiple_choice' && currentQuestion.options?.map((option) => (
             <div key={option} className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-accent cursor-pointer transition-colors">
               <RadioGroupItem value={option} id={`${currentQuestion.id}-${option}`} />
-              <Label htmlFor={`${currentQuestion.id}-${option}`} className="flex-grow cursor-pointer font-normal">
+              <Label htmlFor={`${currentQuestion.id}-${option}`} className="grow cursor-pointer font-normal">
                 {option}
               </Label>
             </div>
@@ -262,7 +262,7 @@ export function QuizViewer({ quizId, onComplete }: QuizViewerProps) {
               {['True', 'False'].map((option) => (
                 <div key={option} className="flex items-center space-x-2 border p-3 rounded-lg hover:bg-accent cursor-pointer transition-colors">
                   <RadioGroupItem value={option} id={`${currentQuestion.id}-${option}`} />
-                  <Label htmlFor={`${currentQuestion.id}-${option}`} className="flex-grow cursor-pointer font-normal">
+                  <Label htmlFor={`${currentQuestion.id}-${option}`} className="grow cursor-pointer font-normal">
                     {option}
                   </Label>
                 </div>

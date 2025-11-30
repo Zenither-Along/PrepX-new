@@ -211,19 +211,19 @@ export function UnifiedPathDialog({
                   
                   {/* Branch 1 - Top */}
                   <div className="absolute top-8 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-primary/60 animate-[pulse_1.5s_ease-in-out_0.2s_infinite]" />
-                  <div className="absolute top-8 left-1/2 w-0.5 h-16 bg-gradient-to-b from-primary/60 to-primary -translate-x-1/2 origin-bottom animate-[scaleY_1.5s_ease-in-out_0.2s_infinite]" style={{ transformOrigin: 'bottom' }} />
+                  <div className="absolute top-8 left-1/2 w-0.5 h-16 bg-linear-to-b from-primary/60 to-primary -translate-x-1/2 origin-bottom animate-[scaleY_1.5s_ease-in-out_0.2s_infinite]" style={{ transformOrigin: 'bottom' }} />
                   
                   {/* Branch 2 - Right */}
                   <div className="absolute top-1/2 right-8 -translate-y-1/2 w-4 h-4 rounded-full bg-primary/60 animate-[pulse_1.5s_ease-in-out_0.4s_infinite]" />
-                  <div className="absolute top-1/2 right-8 w-16 h-0.5 bg-gradient-to-r from-primary to-primary/60 -translate-y-1/2 origin-left animate-[scaleX_1.5s_ease-in-out_0.4s_infinite]" style={{ transformOrigin: 'left' }} />
+                  <div className="absolute top-1/2 right-8 w-16 h-0.5 bg-linear-to-r from-primary to-primary/60 -translate-y-1/2 origin-left animate-[scaleX_1.5s_ease-in-out_0.4s_infinite]" style={{ transformOrigin: 'left' }} />
                   
                   {/* Branch 3 - Bottom */}
                   <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-primary/60 animate-[pulse_1.5s_ease-in-out_0.6s_infinite]" />
-                  <div className="absolute bottom-8 left-1/2 w-0.5 h-16 bg-gradient-to-t from-primary/60 to-primary -translate-x-1/2 origin-top animate-[scaleY_1.5s_ease-in-out_0.6s_infinite]" style={{ transformOrigin: 'top' }} />
+                  <div className="absolute bottom-8 left-1/2 w-0.5 h-16 bg-linear-to-t from-primary/60 to-primary -translate-x-1/2 origin-top animate-[scaleY_1.5s_ease-in-out_0.6s_infinite]" style={{ transformOrigin: 'top' }} />
                   
                   {/* Branch 4 - Left */}
                   <div className="absolute top-1/2 left-8 -translate-y-1/2 w-4 h-4 rounded-full bg-primary/60 animate-[pulse_1.5s_ease-in-out_0.8s_infinite]" />
-                  <div className="absolute top-1/2 left-8 w-16 h-0.5 bg-gradient-to-l from-primary to-primary/60 -translate-y-1/2 origin-right animate-[scaleX_1.5s_ease-in-out_0.8s_infinite]" style={{ transformOrigin: 'right' }} />
+                  <div className="absolute top-1/2 left-8 w-16 h-0.5 bg-linear-to-l from-primary to-primary/60 -translate-y-1/2 origin-right animate-[scaleX_1.5s_ease-in-out_0.8s_infinite]" style={{ transformOrigin: 'right' }} />
                   
                   {/* Outer ring */}
                   <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-[ping_2s_ease-in-out_infinite]" />

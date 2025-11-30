@@ -10,7 +10,7 @@ export function CTASection() {
 
   return (
     <section className="mx-auto max-w-7xl px-6 py-24">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-500 to-purple-600 px-6 py-24 text-center shadow-2xl sm:px-16">
+      <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-blue-500 to-purple-600 px-6 py-24 text-center shadow-2xl sm:px-16">
         <div className="relative z-10 mx-auto max-w-2xl">
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Start Building Your Learning Path Today

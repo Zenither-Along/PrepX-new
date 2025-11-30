@@ -10,7 +10,7 @@ export function UseCasesSection() {
       description: "Organize study materials, track assignment progress, use AI chat for help, and follow custom learning paths tailored to your goals",
       color: "from-blue-500 to-cyan-500",
       bgGradient: "from-blue-50 to-cyan-50",
-      iconBg: "bg-gradient-to-br from-blue-500 to-cyan-500"
+      iconBg: "bg-linear-to-br from-blue-500 to-cyan-500"
     },
     {
       icon: Users,
@@ -18,7 +18,7 @@ export function UseCasesSection() {
       description: "Design courses, create classrooms, assign paths to students, track completion rates, and manage all your teaching in one place",
       color: "from-purple-500 to-pink-500",
       bgGradient: "from-purple-50 to-pink-50",
-      iconBg: "bg-gradient-to-br from-purple-500 to-pink-500"
+      iconBg: "bg-linear-to-br from-purple-500 to-pink-500"
     },
     {
       icon: Briefcase,
@@ -26,7 +26,7 @@ export function UseCasesSection() {
       description: "Build comprehensive curricula, manage multiple classrooms, analyze student analytics, and scale your educational offerings",
       color: "from-orange-500 to-red-500",
       bgGradient: "from-orange-50 to-red-50",
-      iconBg: "bg-gradient-to-br from-orange-500 to-red-500"
+      iconBg: "bg-linear-to-br from-orange-500 to-red-500"
     },
     {
       icon: BookOpen,
@@ -34,12 +34,12 @@ export function UseCasesSection() {
       description: "Share your expertise with the world, build a library of public paths, and help learners discover your curated content",
       color: "from-green-500 to-emerald-500",
       bgGradient: "from-green-50 to-emerald-50",
-      iconBg: "bg-gradient-to-br from-green-500 to-emerald-500"
+      iconBg: "bg-linear-to-br from-green-500 to-emerald-500"
     }
   ];
 
   return (
-    <section className="bg-gradient-to-b from-slate-50 to-white py-24">
+    <section className="bg-linear-to-b from-slate-50 to-white py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="mb-16 text-center">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-3">
