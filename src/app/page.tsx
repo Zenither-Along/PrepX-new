@@ -1,7 +1,7 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { BookOpen, Star, Globe, School, Sparkles } from "lucide-react";
+import { BookOpen, Globe, School, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -10,7 +10,6 @@ import { LandingPage } from "@/components/LandingPage";
 import { PathCard } from "@/components/home/PathCard";
 import { UnifiedPathDialog } from "@/components/home/UnifiedPathDialog";
 import { EditDescriptionDialog } from "@/components/home/EditDescriptionDialog";
-import { PdfUploadDialog } from "@/components/home/PdfUploadDialog";
 import { GenerationProgressCard } from "@/components/home/GenerationProgressCard";
 import { saveGeneratedPath } from "@/lib/ai/saveGeneratedPath";
 import { usePathManager } from "@/hooks/usePathManager";
@@ -89,6 +88,15 @@ export default function Home() {
     }
   }, [activeJobs, fetchPaths]);
 
+  // Show landing page if not logged in
+  if (!isLoaded) {
+    return <div className="h-full flex items-center justify-center">Loading...</div>;
+  }
+
+  if (!user) {
+    return <LandingPage />;
+  }
+
   return (
     <div className="h-full overflow-y-auto bg-background">
       {/* Navigation */}
@@ -112,13 +120,15 @@ export default function Home() {
                 <span className="hidden md:inline ml-2">Classrooms</span>
               </Button>
             </Link>
-            <Link href="/major">
-              <Button variant="ghost" size="icon" className="text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50">
-                <Star className="h-5 w-5" />
-              </Button>
-            </Link>
             <ModeToggle />
-            <UserButton afterSignOutUrl="/" />
+            <UserButton 
+              afterSignOutUrl="/" 
+              appearance={{
+                elements: {
+                  userButtonAvatarBox: "w-9 h-9"
+                }
+              }}
+            />
           </div>
         </div>
       </nav>
@@ -132,7 +142,6 @@ export default function Home() {
           </div>
           
           <div className="flex items-center gap-2">
-            <PdfUploadDialog />
             <UnifiedPathDialog 
               open={isDialogOpen}
               onOpenChange={setIsDialogOpen}
@@ -161,7 +170,6 @@ export default function Home() {
               Start your learning journey by creating your first structured path.
             </p>
             <div className="mt-8 flex gap-4 justify-center">
-              <PdfUploadDialog />
               <UnifiedPathDialog 
                 open={isDialogOpen}
                 onOpenChange={setIsDialogOpen}

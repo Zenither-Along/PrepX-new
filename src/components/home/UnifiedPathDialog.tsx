@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -20,9 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Sparkles, Loader2, Save } from "lucide-react";
+import { Plus, Sparkles, Loader2, Save, Upload, FileText, AlertCircle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { usePathGeneration } from "@/context/PathGenerationContext";
 
 interface UnifiedPathDialogProps {
   // Manual create props
@@ -57,6 +58,11 @@ export function UnifiedPathDialog({
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedData, setGeneratedData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // PDF Upload state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  const { uploadPdf } = usePathGeneration();
 
   const handleGenerate = async () => {
     if (!topic.trim()) return;
@@ -110,6 +116,29 @@ export function UnifiedPathDialog({
     onCreate();
   };
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      setPdfError('Please upload a valid PDF file.');
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setPdfError('File size must be less than 5MB.');
+      return;
+    }
+
+    setPdfError(null);
+    onOpenChange(false); // Close dialog
+    
+    // Start upload process
+    await uploadPdf(file);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
@@ -129,7 +158,7 @@ export function UnifiedPathDialog({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="manual" className="gap-2">
               <Plus className="h-4 w-4" />
               Manual
@@ -137,6 +166,10 @@ export function UnifiedPathDialog({
             <TabsTrigger value="ai" className="gap-2">
               <Sparkles className="h-4 w-4" />
               AI Generate
+            </TabsTrigger>
+            <TabsTrigger value="pdf" className="gap-2">
+              <Upload className="h-4 w-4" />
+              PDF Upload
             </TabsTrigger>
           </TabsList>
 
@@ -347,6 +380,44 @@ export function UnifiedPathDialog({
                 </div>
               </div>
             )}
+          </TabsContent>
+
+          {/* PDF Upload Tab */}
+          <TabsContent value="pdf" className="flex-1 space-y-4 mt-4">
+            <div className="space-y-4">
+              <div 
+                className="border-2 border-dashed rounded-lg p-8 text-center hover:bg-muted/50 transition-colors cursor-pointer"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <FileText className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground mb-2">
+                  Click to upload or drag and drop
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  PDF up to 5MB
+                </p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </div>
+
+              {pdfError && (
+                <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 p-3 rounded-md">
+                  <AlertCircle className="h-4 w-4" />
+                  {pdfError}
+                </div>
+              )}
+
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p>• The process will continue in the background</p>
+                <p>• You can navigate away while it's processing</p>
+                <p>• A progress card will appear on the home page</p>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </DialogContent>
