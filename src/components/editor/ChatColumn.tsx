@@ -397,15 +397,6 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
             <h3 className="font-semibold text-sm">AI Study Buddy</h3>
           </div>
           <div className="flex items-center gap-1">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-7 w-7 cursor-pointer hover:bg-muted"
-              onClick={handleNewChat}
-              title="New Chat"
-            >
-              <Sparkles className="h-4 w-4" />
-            </Button>
             <Sheet open={showHistory} onOpenChange={setShowHistory}>
               <SheetTrigger asChild>
                 <Button 
