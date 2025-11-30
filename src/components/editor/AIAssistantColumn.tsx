@@ -105,10 +105,15 @@ What would you like to create?`
             // Expect JSON with a 'data' field (2D array)
             try {
               const parsed = JSON.parse(editedContent);
-              formattedContent = { data: parsed.data };
+              if (parsed.data && Array.isArray(parsed.data)) {
+                formattedContent = { data: parsed.data };
+              } else {
+                // Invalid format, keep original
+                formattedContent = { data: editingSection.content.data || [] };
+              }
             } catch (e) {
-              // Fallback: treat as raw data string (unlikely)
-              formattedContent = { data: [] };
+              // Parsing failed, keep original
+              formattedContent = { data: editingSection.content.data || [] };
             }
           } else if (editingSection.type === 'list') {
             // Expect JSON array of strings

@@ -44,7 +44,7 @@ export async function POST(req: Request) {
         "video": "This is a video section. Suggest a better URL or improve the description for the video. Return a JSON object with 'url' and optionally 'title' or 'description' fields.",
         "link": "This is a link section. Improve the link URL or description. Return a JSON object with 'url' and 'title' fields.",
         "list": "This is a list section. Improve the list items for clarity and completeness. Return the list items as an array.",
-        "table": "This is a table section. Improve the table structure and data. Return ONLY a JSON object in this exact format: { \"data\": [[\"cell1\", \"cell2\"], [\"cell3\", \"cell4\"]] } where 'data' is a 2D array with rows and columns.",
+        "table": "This is a table section. You MUST return the COMPLETE table data. Do not skip rows or columns. Return ONLY a JSON object in this exact format: { \"data\": [[\"header1\", \"header2\"], [\"row1col1\", \"row1col2\"]] } where 'data' is a 2D array of strings representing the entire table. Preserve existing content unless asked to change it.",
         "qna": "This is a Q&A section. Improve the question and answer for clarity and educational value. Return a JSON object with 'question' and 'answer' fields."
       };
 
