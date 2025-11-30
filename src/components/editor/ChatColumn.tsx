@@ -115,7 +115,8 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
     saveMessage, 
     createSession,
     deleteSession,
-    setCurrentSessionId
+    setCurrentSessionId,
+    updateSessionTitle
   } = useChatHistory(columnId);
   
   const [messages, setMessages] = useState<Message[]>([]);
@@ -142,6 +143,56 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, isLoading]);
+
+  // Auto-generate conversation title after first exchange
+  useEffect(() => {
+    const generateTitle = async () => {
+      if (!currentSessionId || messages.length !== 2) return;
+      
+      const currentSession = sessions.find(s => s.id === currentSessionId);
+      if (!currentSession || currentSession.title !== "New Conversation") return;
+
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [
+              { role: "user", content: `Generate a short, concise title (max 4-5 words) for a conversation that starts with this question: "${messages[0].content}". Only respond with the title, nothing else.` }
+            ],
+            columnId,
+            context: contextData,
+            webSearch: false,
+            teachingMode: "expert"
+          }),
+        });
+
+        if (response.ok) {
+          const reader = response.body?.getReader();
+          const decoder = new TextDecoder();
+          let title = "";
+
+          if (reader) {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              title += decoder.decode(value, { stream: true });
+            }
+            
+            // Clean up the title (remove quotes, trim, limit length)
+            title = title.replace(/^"+|"+$/g, '').trim().substring(0, 50);
+            if (title) {
+              await updateSessionTitle(currentSessionId, title);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to generate title:", error);
+      }
+    };
+
+    generateTitle();
+  }, [messages, currentSessionId, sessions, updateSessionTitle]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -373,6 +424,19 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
                   </SheetDescription>
                 </SheetHeader>
                 <div className="mt-6 space-y-4 max-h-[calc(100vh-120px)] overflow-y-auto">
+                  {/* New Chat Button */}
+                  <button
+                    onClick={() => {
+                      handleNewChat();
+                      setShowHistory(false);
+                    }}
+                    className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors w-full text-left group"
+                  >
+                    <div className="bg-primary/10 p-2 rounded-lg group-hover:bg-primary/20 transition-colors">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="font-medium text-sm">New chat</span>
+                  </button>
                   {sessions.map((session) => (
                     <div 
                       key={session.id} 

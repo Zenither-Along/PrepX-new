@@ -194,6 +194,23 @@ export function useChatHistory(columnId: string | null) {
     }
   };
 
+  // Update session title
+  const updateSessionTitle = async (sessionId: string, title: string) => {
+    try {
+      const { error } = await supabase
+        .from("chat_sessions")
+        .update({ title })
+        .eq("id", sessionId);
+
+      if (error) throw error;
+
+      setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, title } : s));
+    } catch (err: any) {
+      console.error("Error updating session title:", err);
+      setError(err.message);
+    }
+  };
+
   // Clear all chat history for this column (Legacy support, now deletes current session)
   const clearHistory = async () => {
     if (currentSessionId) {
@@ -211,6 +228,7 @@ export function useChatHistory(columnId: string | null) {
     clearHistory,
     createSession,
     deleteSession,
-    setCurrentSessionId
+    setCurrentSessionId,
+    updateSessionTitle
   };
 }
