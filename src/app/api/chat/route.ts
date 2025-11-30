@@ -44,7 +44,7 @@ export async function POST(req: Request) {
         "video": "This is a video section. Suggest a better URL or improve the description for the video. Return a JSON object with 'url' and optionally 'title' or 'description' fields.",
         "link": "This is a link section. Improve the link URL or description. Return a JSON object with 'url' and 'title' fields.",
         "list": "This is a list section. Improve the list items for clarity and completeness. Return the list items as an array.",
-        "table": "This is a table section. Improve the table structure and data presentation. Return in an appropriate table format.",
+        "table": "This is a table section. Improve the table structure and data. Return ONLY a JSON object in this exact format: { \"data\": [[\"cell1\", \"cell2\"], [\"cell3\", \"cell4\"]] } where 'data' is a 2D array with rows and columns.",
         "qna": "This is a Q&A section. Improve the question and answer for clarity and educational value. Return a JSON object with 'question' and 'answer' fields."
       };
 
@@ -109,7 +109,7 @@ SECTION TYPE GUIDANCE:
 - "code": Use for code snippets. Provide the code as a string
 - "image": Use for images. Provide image URL
 - "video": Use for videos. Provide video URL (YouTube, Vimeo, etc.)
-- "table": Use for tabular data. Provide as HTML table or structured data
+- "table": Use for tabular data. Provide as JSON: { "data": [["row1col1", "row1col2"], ["row2col1", "row2col2"]] }
 - "list": Use for simple lists. Provide as array of items
 - "link": Use for external links. Provide URL and title
 - "qna": Use for Q&A sections. Provide object with "question" and "answer" fields

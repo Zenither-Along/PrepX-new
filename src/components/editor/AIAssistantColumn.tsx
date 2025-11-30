@@ -101,6 +101,23 @@ What would you like to create?`
             formattedContent = { html: editedContent };
           } else if (editingSection.type === 'code') {
             formattedContent = { code: editedContent, language: editingSection.content.language || 'javascript' };
+          } else if (editingSection.type === 'table') {
+            // Expect JSON with a 'data' field (2D array)
+            try {
+              const parsed = JSON.parse(editedContent);
+              formattedContent = { data: parsed.data };
+            } catch (e) {
+              // Fallback: treat as raw data string (unlikely)
+              formattedContent = { data: [] };
+            }
+          } else if (editingSection.type === 'list') {
+            // Expect JSON array of strings
+            try {
+              const parsed = JSON.parse(editedContent);
+              formattedContent = { items: Array.isArray(parsed) ? parsed : [] };
+            } catch (e) {
+              formattedContent = { items: [] };
+            }
           } else {
             // Try to parse as JSON for other types (image, video, link, etc.)
             try {

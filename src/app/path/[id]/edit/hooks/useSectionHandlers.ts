@@ -28,7 +28,8 @@ export function useSectionHandlers(
     } else if (type === 'code') {
       content = { code: initialContent || '', language: 'javascript' };
     } else if (type === 'table') {
-      content = typeof initialContent === 'string' ? { html: initialContent } : (initialContent || { rows: [], columns: [] });
+      // Initialize a simple 2x2 empty table
+      content = { data: [['', ''], ['', '']] };
     } else if (type === 'list') {
       content = typeof initialContent === 'object' && Array.isArray(initialContent) ? { items: initialContent } : { items: initialContent ? [initialContent] : [] };
     } else if (type === 'link') {
