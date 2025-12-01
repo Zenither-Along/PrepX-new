@@ -12,6 +12,7 @@ import {
   insertContentSections,
   createChildColumn
 } from '@/lib/actions/actions';
+import { toast } from '@/hooks/use-toast';
 import type { PathData, Column, ColumnItem, ContentSection } from '../types';
 
 export function useEditorSave(
@@ -41,7 +42,11 @@ export function useEditorSave(
     // Validate path id
     const pathId = typeof id === 'string' ? id : Array.isArray(id) ? id[0] : undefined;
     if (!pathId) {
-      alert('Invalid path ID');
+      toast({
+        variant: "destructive",
+        title: "Invalid path ID",
+        description: "Unable to save changes.",
+      });
       return;
     }
 
@@ -170,12 +175,22 @@ export function useEditorSave(
       // We should probably reload the page or data to get fresh state with real IDs
       // window.location.reload(); // Brute force but safe
       // Or we can just alert.
-      alert('Saved successfully! Reloading to sync data...');
-      window.location.reload(); 
+      toast({
+        variant: "success",
+        title: "Saved successfully!",
+        description: "Reloading to sync data...",
+      });
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
       
     } catch (err) {
       console.error('Save error:', err);
-      alert('Failed to save. Please try again.');
+      toast({
+        variant: "destructive",
+        title: "Failed to save",
+        description: "Please try again.",
+      });
     } finally {
       setSaving(false);
     }

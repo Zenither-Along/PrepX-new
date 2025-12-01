@@ -19,6 +19,7 @@ import { Loader2, Sparkles, Brain, CheckCircle2 } from "lucide-react";
 import { useSupabase } from "@/lib/useSupabase";
 import { saveGeneratedQuiz } from "@/lib/ai/saveGeneratedQuiz";
 import { useUser } from "@clerk/nextjs";
+import { toast } from "@/hooks/use-toast";
 
 interface QuizGeneratorDialogProps {
   pathId: string;
@@ -83,7 +84,11 @@ export function QuizGeneratorDialog({
       setGeneratedQuiz(data);
     } catch (error) {
       console.error("Error generating quiz:", error);
-      alert("Failed to generate quiz. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Failed to generate quiz",
+        description: "Please try again.",
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -110,7 +115,11 @@ export function QuizGeneratorDialog({
       
     } catch (error) {
       console.error("Error saving quiz:", error);
-      alert("Failed to save quiz. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Failed to save quiz",
+        description: "Please try again.",
+      });
     } finally {
       setIsSaving(false);
     }

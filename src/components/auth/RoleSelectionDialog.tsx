@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { GraduationCap, School } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
+import { toast } from "@/hooks/use-toast";
 
 export function RoleSelectionDialog() {
   const { user, isLoaded: isUserLoaded } = useUser();
@@ -36,11 +37,19 @@ export function RoleSelectionDialog() {
         setOpen(false);
       } else {
         // If result is null, it means creation failed (handled in hook)
-        alert("Failed to create profile. Please check your connection and try again.");
+        toast({
+          variant: "destructive",
+          title: "Failed to create profile",
+          description: "Please check your connection and try again.",
+        });
       }
     } catch (error) {
       console.error("Failed to create profile:", error);
-      alert("An unexpected error occurred. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "An unexpected error occurred",
+        description: "Please try again.",
+      });
     } finally {
       setCreating(false);
     }

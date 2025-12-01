@@ -4,6 +4,16 @@ import { UserButton } from "@clerk/nextjs";
 import { BookOpen, Globe, School, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Logo } from "@/components/logo";
 import { LandingPage } from "@/components/LandingPage";
@@ -17,6 +27,7 @@ import { usePathGeneration } from "@/context/PathGenerationContext";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useSupabase } from "@/lib/useSupabase";
+import { toast } from "@/hooks/use-toast";
 
 export default function Home() {
   const router = useRouter();
@@ -46,7 +57,10 @@ export default function Home() {
     handleSetMajor,
     handleUnsetMajor,
     handlePublish,
-    fetchPaths
+    fetchPaths,
+    isDeleteDialogOpen,
+    setIsDeleteDialogOpen,
+    confirmDelete,
   } = usePathManager();
 
   const handlePathGenerated = async (pathData: any) => {
@@ -59,7 +73,11 @@ export default function Home() {
       router.push(`/path/${pathId}/edit`);
     } catch (error: unknown) {
       console.error("Failed to save generated path:", error);
-      alert("Failed to save path: " + (error instanceof Error ? error.message : 'Unknown error'));
+      toast({
+        variant: "destructive",
+        title: "Failed to save path",
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
     } finally {
       setIsSavingAI(false);
     }
@@ -222,6 +240,26 @@ export default function Home() {
           onSave={handleSaveDescription}
           isSaving={isSavingDesc}
         />
+
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Learning Path</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this path? This action cannot be undone and will permanently remove all associated content.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={confirmDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </main>
     </div>
   );

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import { db } from "@/lib/db";
 import { createPath, deletePath, updatePathSubtitle, setMajorPath, unsetMajorPath, publishPath } from "@/lib/actions/actions";
+import { toast } from "@/hooks/use-toast";
 
 export interface LearningPath {
   id: string;
@@ -28,6 +29,10 @@ export function usePathManager() {
   const [editingPathId, setEditingPathId] = useState<string | null>(null);
   const [editingDescription, setEditingDescription] = useState("");
   const [isSavingDesc, setIsSavingDesc] = useState(false);
+
+  // Delete confirmation dialog states
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [pathToDelete, setPathToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -71,22 +76,41 @@ export function usePathManager() {
       setIsDialogOpen(false);
       setNewPathTitle("");
     } catch (error) {
+      // Ignore NEXT_REDIRECT errors - they're thrown by Next.js redirect() as part of normal operation
+      if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+        return;
+      }
       console.error("Error creating path:", error);
-      alert("Failed to create path");
+      toast({
+        variant: "destructive",
+        title: "Failed to create path",
+        description: "Please try again.",
+      });
       setIsCreating(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this path?")) return;
+    setPathToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!pathToDelete) return;
     
     try {
-      await deletePath(id);
+      await deletePath(pathToDelete);
       // Remove from UI after successful deletion
-      setPaths(paths.filter(p => p.id !== id));
+      setPaths(paths.filter(p => p.id !== pathToDelete));
+      setIsDeleteDialogOpen(false);
+      setPathToDelete(null);
     } catch (error) {
       console.error("Error deleting path:", error);
-      alert("Failed to delete path. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Failed to delete path",
+        description: "Please try again.",
+      });
     }
   };
 
@@ -111,7 +135,11 @@ export function usePathManager() {
       setEditingDescription("");
     } catch (error) {
       console.error("Error updating description:", error);
-      alert("Failed to update description. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Failed to update description",
+        description: "Please try again.",
+      });
     } finally {
       setIsSavingDesc(false);
     }
@@ -127,7 +155,11 @@ export function usePathManager() {
       })).sort((a, b) => (a.id === id ? -1 : b.id === id ? 1 : 0)));
     } catch (error) {
       console.error("Error setting major path:", error);
-      alert("Failed to set major path");
+      toast({
+        variant: "destructive",
+        title: "Failed to set major path",
+        description: "Please try again.",
+      });
     }
   };
 
@@ -138,7 +170,11 @@ export function usePathManager() {
       setPaths(paths.map(p => p.id === id ? { ...p, is_major: false } : p));
     } catch (error) {
       console.error("Error unsetting major path:", error);
-      alert("Failed to unset major path");
+      toast({
+        variant: "destructive",
+        title: "Failed to unset major path",
+        description: "Please try again.",
+      });
     }
   };
 
@@ -148,7 +184,11 @@ export function usePathManager() {
       setPaths(paths.map(p => p.id === id ? { ...p, is_public: !currentStatus } : p));
     } catch (error) {
       console.error("Error publishing path:", error);
-      alert("Failed to update publication status");
+      toast({
+        variant: "destructive",
+        title: "Failed to update publication status",
+        description: "Please try again.",
+      });
     }
   };
 
@@ -174,6 +214,9 @@ export function usePathManager() {
     handleSetMajor,
     handleUnsetMajor,
     handlePublish,
-    fetchPaths
+    fetchPaths,
+    isDeleteDialogOpen,
+    setIsDeleteDialogOpen,
+    confirmDelete,
   };
 }

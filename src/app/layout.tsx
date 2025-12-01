@@ -5,6 +5,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { RoleSelectionDialog } from "@/components/auth/RoleSelectionDialog";
 import { PathGenerationProvider } from "@/context/PathGenerationContext";
+import { Toaster } from "@/components/ui/toaster";
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-instrument-sans",
@@ -92,6 +93,7 @@ export default function RootLayout({
               {children}
               <RoleSelectionDialog />
             </PathGenerationProvider>
+            <Toaster />
           </ThemeProvider>
         </body>
       </html>

@@ -7,6 +7,16 @@ import { useSupabase } from "@/lib/useSupabase";
 import { QuizGeneratorDialog } from "./QuizGeneratorDialog";
 import { QuizViewer } from "./QuizViewer";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogHeader } from "@/components/ui/dialog";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
@@ -29,6 +39,8 @@ export function QuizList({ pathId, columnId, itemId, contentContext }: QuizListP
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
+  const [quizToDelete, setQuizToDelete] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const supabase = useSupabase();
 
   useEffect(() => {
@@ -59,16 +71,23 @@ export function QuizList({ pathId, columnId, itemId, contentContext }: QuizListP
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm("Are you sure you want to delete this quiz?")) return;
+    setQuizToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!quizToDelete) return;
 
     try {
       const { error } = await supabase
         .from('quizzes')
         .delete()
-        .eq('id', id);
+        .eq('id', quizToDelete);
 
       if (error) throw error;
-      setQuizzes(prev => prev.filter(q => q.id !== id));
+      setQuizzes(prev => prev.filter(q => q.id !== quizToDelete));
+      setIsDeleteDialogOpen(false);
+      setQuizToDelete(null);
     } catch (error) {
       console.error("Error deleting quiz:", error);
     }
@@ -145,6 +164,26 @@ export function QuizList({ pathId, columnId, itemId, contentContext }: QuizListP
           ))}
         </div>
       )}
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Quiz</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this quiz? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
