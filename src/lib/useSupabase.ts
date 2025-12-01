@@ -17,7 +17,7 @@ export function useSupabase() {
             if (!token) {
                 console.warn("useSupabase: No token received from Clerk. Check if 'supabase' JWT template is configured.");
             } else {
-                // console.log("useSupabase: Token received");
+                console.log("useSupabase: Token received, length:", token.length);
             }
 
             const headers = new Headers(options?.headers);

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSupabase } from "@/lib/useSupabase";
+import { useUser } from "@clerk/nextjs";
 
 interface Message {
   id: string;
@@ -25,6 +26,7 @@ export function useChatHistory(columnId: string | null) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const supabase = useSupabase();
+  const { user } = useUser();
 
   // Load sessions when component mounts or columnId changes
   useEffect(() => {
@@ -107,7 +109,7 @@ export function useChatHistory(columnId: string | null) {
   };
 
   const createSession = async () => {
-    if (!columnId) return;
+    if (!columnId || !user) return;
 
     try {
       const { data, error } = await supabase
@@ -115,6 +117,7 @@ export function useChatHistory(columnId: string | null) {
         .insert({
           column_id: columnId,
           title: "New Conversation",
+          user_id: user?.id,
         })
         .select()
         .single();
@@ -127,7 +130,17 @@ export function useChatHistory(columnId: string | null) {
       return data;
     } catch (err: any) {
       console.error("Error creating session:", err);
-      setError(err.message);
+      console.error("Error details:", JSON.stringify(err, null, 2));
+      console.log("Column ID:", columnId);
+      console.log("User ID (Client):", user?.id);
+      
+      // Debug: Check what the server sees
+      supabase.rpc('debug_get_user_id').then(({ data, error }) => {
+        console.log("Auth Debug (Server):", data);
+        if (error) console.error("RPC Error:", error);
+      });
+
+      setError(err.message || "Failed to create session");
     }
   };
 

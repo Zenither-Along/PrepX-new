@@ -1,0 +1,61 @@
+-- ================================================================================
+-- GUIDE: Multiple Permissive Policies (63 warnings)
+-- ================================================================================
+-- These warnings indicate you have redundant/overlapping RLS policies.
+-- Most are caused by having BOTH generic policies AND specific "Clerk" policies.
+-- 
+-- The 63 warnings won't affect functionality but reduce performance.
+-- They're lower priority than the security/auth issues.
+--
+-- RECOMMENDATION: Review and consolidate after testing the first 2 migrations.
+-- ================================================================================
+
+-- Example Issue: column_items has these policies:
+--   1. "Anonymous read access" (SELECT for anon)  
+--   2. "Authenticated users full access to own items" (ALL using auth check)
+--   3. "Clerk" (DELETE/INSERT/UPDATE for authenticated)
+--
+-- Policies 2 and 3 overlap - both allow authenticated users full access.
+-- Solution: Remove either policy #2 or #3, they're redundant.
+
+-- TABLES WITH DUPLICATE POLICIES:
+-- - assignment_section_progress (3 SELECT policies)
+-- - assignment_submissions (2 SELECT policies)
+-- - assignments (2 SELECT policies)
+-- - classroom_members (2 SELECT policies)
+-- - classrooms (2 SELECT policies - "lookup by code" + "teachers view own")
+-- - column_items (Multiple for SELECT/INSERT/UPDATE/DELETE)
+-- - columns (Multiple for SELECT/INSERT/UPDATE/DELETE)
+-- - content_sections (Multiple for SELECT/INSERT/UPDATE/DELETE)
+-- - learning_paths (Multiple for SELECT/INSERT/UPDATE/DELETE)
+-- - quiz_attempts (2-3 SELECT policies)
+-- - quiz_questions (2 SELECT policies)
+-- - quizzes (2 SELECT policies)
+
+-- ================================================================================
+-- RECOMMENDED ACTION PLAN:
+-- ================================================================================
+-- 1. Run fix_001_security_search_path.sql FIRST (CRITICAL)
+-- 2. Run fix_002_optimize_rls_auth.sql SECOND (HIGH-PRIORITY PERFORMANCE)
+-- 3. Test app functionality thoroughly
+-- 4. Verify issues reduced from 99 to ~63
+-- 5. THEN tackle duplicate policies if performance is still a concern
+--
+-- For duplicate policies, the fix is manual:
+--   - Review each table's policies in Supabase dashboard
+--   - Identify which policies serve the same purpose
+--   - Combine or remove duplicates
+--   - Test to ensure no access is blocked
+--
+-- ================================================================================
+
+-- Example consolidation for column_items:
+-- BEFORE (3+ policies):
+--   - "Anonymous read access" FOR SELECT
+--   - "Authenticated users full access to own items" FOR ALL
+--   - "Clerk" FOR DELETE/INSERT/UPDATE
+--
+-- AFTER (2 policies):
+--   - "Anonymous read access" FOR SELECT (keep - allows public paths)
+--   - "Authenticated users full access to own items" FOR ALL (keep - covers auth users)
+--   - DROP "Clerk" policy (redundant with policy #2)

@@ -49,6 +49,7 @@ export function QuizGeneratorDialog({
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedQuiz, setGeneratedQuiz] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [showAnswers, setShowAnswers] = useState(false);
   
   const supabase = useSupabase();
   const { user } = useUser();
@@ -203,8 +204,20 @@ export function QuizGeneratorDialog({
         ) : (
           <div className="py-4 space-y-4">
             <div className="bg-muted p-4 rounded-lg">
-              <h3 className="font-semibold text-lg mb-1">{generatedQuiz.title}</h3>
-              <p className="text-sm text-muted-foreground mb-4">{generatedQuiz.description}</p>
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="font-semibold text-lg mb-1">{generatedQuiz.title}</h3>
+                  <p className="text-sm text-muted-foreground">{generatedQuiz.description}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAnswers(!showAnswers)}
+                  className="text-xs"
+                >
+                  {showAnswers ? "Hide Answers" : "Show Answers"}
+                </Button>
+              </div>
               
               <div className="space-y-3">
                 {generatedQuiz.questions.map((q: any, i: number) => (
@@ -215,14 +228,14 @@ export function QuizGeneratorDialog({
                     <div className="pl-4 space-y-1 text-muted-foreground">
                       {q.question_type === 'multiple_choice' && q.options?.map((opt: string, j: number) => (
                         <div key={j} className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${opt === q.correct_answer ? 'bg-green-500' : 'bg-gray-300'}`} />
-                          <span className={opt === q.correct_answer ? 'text-green-600 font-medium' : ''}>{opt}</span>
+                          <div className={`w-2 h-2 rounded-full ${showAnswers && opt === q.correct_answer ? 'bg-green-500' : 'bg-gray-300'}`} />
+                          <span className={showAnswers && opt === q.correct_answer ? 'text-green-600 font-medium' : ''}>{opt}</span>
                         </div>
                       ))}
                       {q.question_type === 'true_false' && (
                         <div className="flex gap-4">
-                          <span className={q.correct_answer === 'True' ? 'text-green-600 font-medium' : ''}>True</span>
-                          <span className={q.correct_answer === 'False' ? 'text-green-600 font-medium' : ''}>False</span>
+                          <span className={showAnswers && q.correct_answer === 'True' ? 'text-green-600 font-medium' : ''}>True</span>
+                          <span className={showAnswers && q.correct_answer === 'False' ? 'text-green-600 font-medium' : ''}>False</span>
                         </div>
                       )}
                     </div>
