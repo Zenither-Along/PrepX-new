@@ -29,13 +29,11 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://prepx.com'), // Update with your actual domain
+  metadataBase: new URL('https://prepx.app'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    type: 'website',
-    locale: 'en_US',
     url: 'https://prepx.com',
     title: 'PrepX - Transform How You Learn & Teach',
     description: 'Create structured learning paths with branching topics, AI-powered content generation, and collaborative classrooms.',

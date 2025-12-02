@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Logo } from "@/components/logo";
-import { Twitter, Instagram, Facebook } from "lucide-react";
+import { Instagram, Facebook, Linkedin } from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -14,7 +14,9 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-12 md:grid-cols-[2fr_3fr]">
           {/* Brand Section - Left Side */}
           <div>
-            <Logo width={140} height={48} />
+            <Link href="/">
+              <Logo width={140} height={48} forceTheme="light" textColor="text-gray-900" />
+            </Link>
             <p className="mt-4 text-sm text-gray-600 max-w-sm">
               PrepX helps learners and educators create structured learning paths, manage classrooms, and track progress — all in one place.
             </p>
@@ -59,7 +61,7 @@ export function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  <Link href="/about" className="text-sm text-gray-600 hover:text-primary transition-colors">
                     About
                   </Link>
                 </li>
@@ -71,17 +73,17 @@ export function Footer() {
               <h3 className="text-sm font-semibold text-gray-900 mb-4">Support</h3>
               <ul className="space-y-3">
                 <li>
-                  <Link href="/#faq" className="text-sm text-gray-600 hover:text-primary transition-colors">
-                    FAQ
+                  <Link href="/feedback" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                    Feedback
                   </Link>
                 </li>
                 <li>
-                  <Link href="/" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  <Link href="/contact" className="text-sm text-gray-600 hover:text-primary transition-colors">
                     Help Center
                   </Link>
                 </li>
                 <li>
-                  <Link href="/" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  <Link href="/contact" className="text-sm text-gray-600 hover:text-primary transition-colors">
                     Contact
                   </Link>
                 </li>
@@ -96,14 +98,18 @@ export function Footer() {
                   href="https://twitter.com"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label="Follow us on X (Twitter)"
                   className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:text-primary hover:border-primary transition-all"
                 >
-                  <Twitter className="h-4 w-4" />
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
                 </a>
                 <a
                   href="https://instagram.com"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label="Follow us on Instagram"
                   className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:text-primary hover:border-primary transition-all"
                 >
                   <Instagram className="h-4 w-4" />
@@ -112,9 +118,19 @@ export function Footer() {
                   href="https://facebook.com"
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label="Follow us on Facebook"
                   className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:text-primary hover:border-primary transition-all"
                 >
                   <Facebook className="h-4 w-4" />
+                </a>
+                <a
+                  href="https://linkedin.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Follow us on LinkedIn"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600 hover:text-primary hover:border-primary transition-all"
+                >
+                  <Linkedin className="h-4 w-4" />
                 </a>
               </div>
             </div>
@@ -127,13 +143,13 @@ export function Footer() {
             © {currentYear} PrepX. All rights reserved.
           </p>
           <div className="flex gap-6">
-            <Link href="/" className="text-sm text-gray-600 hover:text-primary transition-colors">
+            <Link href="/terms" className="text-sm text-gray-600 hover:text-primary transition-colors">
               Terms of Service
             </Link>
-            <Link href="/" className="text-sm text-gray-600 hover:text-primary transition-colors">
+            <Link href="/privacy" className="text-sm text-gray-600 hover:text-primary transition-colors">
               Privacy Policy
             </Link>
-            <Link href="/" className="text-sm text-gray-600 hover:text-primary transition-colors">
+            <Link href="/cookies" className="text-sm text-gray-600 hover:text-primary transition-colors">
               Cookie Policy
             </Link>
           </div>
