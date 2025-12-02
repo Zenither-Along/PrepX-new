@@ -182,6 +182,11 @@ export function usePathManager() {
     try {
       await publishPath(id, !currentStatus);
       setPaths(paths.map(p => p.id === id ? { ...p, is_public: !currentStatus } : p));
+      toast({
+        title: !currentStatus ? "Path published to community" : "Path unpublished",
+        description: !currentStatus ? "Others can now view and clone this path." : "This path is no longer visible to the community.",
+        variant: "success",
+      });
     } catch (error) {
       console.error("Error publishing path:", error);
       toast({

@@ -9,6 +9,7 @@ import { useClerk } from "@clerk/nextjs";
 import { clonePath } from "@/lib/actions/actions";
 import { useRouter } from "next/navigation";
 import { PathCardSkeleton } from "./PathCardSkeleton";
+import { useToast } from "@/hooks/use-toast";
 
 interface Path {
   id: string;
@@ -44,6 +45,7 @@ export function ExploreClient({
   const observerTarget = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { openSignIn } = useClerk();
+  const { toast } = useToast();
 
   const loadMore = useCallback(async () => {
     if (isLoading || !hasMore) return;
@@ -102,9 +104,19 @@ export function ExploreClient({
 
     try {
       await clonePath(pathId);
+      toast({
+        title: "Path cloned successfully!",
+        description: "The path has been added to your collection.",
+        variant: "success",
+      });
       router.push("/");
     } catch (error) {
       console.error("Clone failed:", error);
+      toast({
+        title: "Clone failed",
+        description: "There was an error cloning the path. Please try again.",
+        variant: "destructive",
+      });
     }
   }
 

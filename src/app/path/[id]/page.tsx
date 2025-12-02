@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Pencil, Star } from "lucide-react";
+import { ArrowLeft, Pencil, Star, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -124,19 +124,44 @@ export default function ViewPathPage() {
             </Link>
           </Button>
         )}
+
+        {/* Assignment Progress (Desktop) */}
+        {currentAssignment && profile?.role === 'student' && (
+          <div className="hidden md:flex items-center gap-4">
+            <span className="text-sm font-semibold">{progress}%</span>
+            {currentAssignment.submission_status === 'completed' ? (
+              <div className="flex items-center gap-2 text-green-600 dark:text-green-500">
+                <CheckCircle2 className="h-5 w-5" />
+                <span className="text-sm font-medium">Completed</span>
+              </div>
+            ) : (
+              <Button 
+                onClick={handleCompleteAssignment}
+                disabled={isCompleting || progress < 80}
+                className="gap-2"
+                size="sm"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                {isCompleting ? 'Completing...' : 'Complete'}
+              </Button>
+            )}
+          </div>
+        )}
       </header>
 
-      {/* Assignment Progress Bar */}
+      {/* Assignment Progress Bar (Mobile Only) */}
       {currentAssignment && profile?.role === 'student' && (
-        <AssignmentProgressBar 
-          assignmentTitle={path.title}
-          currentProgress={progress}
-          completedSections={completedSections.size}
-          totalSections={currentAssignment.total_sections || 0}
-          status={currentAssignment.submission_status}
-          onComplete={handleCompleteAssignment}
-          isCompleting={isCompleting}
-        />
+        <div className="md:hidden">
+          <AssignmentProgressBar 
+            assignmentTitle={path.title}
+            currentProgress={progress}
+            completedSections={completedSections.size}
+            totalSections={currentAssignment.total_sections || 0}
+            status={currentAssignment.submission_status}
+            onComplete={handleCompleteAssignment}
+            isCompleting={isCompleting}
+          />
+        </div>
       )}
 
       {/* Main layout */}

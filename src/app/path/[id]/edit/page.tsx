@@ -11,6 +11,7 @@ import { EditorCanvas } from "./components/EditorCanvas";
 import { AIAssistantPanel } from "./components/AIAssistantPanel";
 import { useExecutePlan } from "./hooks/useExecutePlan";
 import { useAISectionEditor } from "./hooks/useAISectionEditor";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 export default function EditorPage() {
   const { id } = useParams();
@@ -104,6 +105,7 @@ export default function EditorPage() {
           setEditingSection={setEditingSection}
         />
       </EditorCanvas>
+      <ConfirmationDialog />
     </div>
   );
 }

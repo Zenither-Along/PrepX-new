@@ -113,7 +113,7 @@ export function DesktopPathView({
                         </Button>
                       </div>
                       {/* Content area */}
-                      <div className="flex-1 overflow-y-auto p-6 space-y-2 no-scrollbar">
+                      <div className={cn("flex-1 overflow-y-auto p-6 space-y-2 no-scrollbar", currentAssignment && "pb-24")}>
                         {colSections.length === 0 ? (
                           <p className="text-muted-foreground italic">No content in this section.</p>
                         ) : (

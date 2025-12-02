@@ -1,4 +1,5 @@
 import { Column } from "../types";
+import { useConfirmation } from "@/hooks/use-confirmation";
 
 export function useColumnHandlers(
   editorData: any,
@@ -7,6 +8,7 @@ export function useColumnHandlers(
   setSelectedItems: (items: Map<string, string>) => void,
   onNavigateBack?: () => void // Optional callback for mobile navigation
 ) {
+  const { confirm } = useConfirmation();
   const handleAddColumn = (parentItemId: string | null, type: 'branch' | 'dynamic') => {
     // Create a temporary column
     const newColumn: Column = {
@@ -78,32 +80,38 @@ export function useColumnHandlers(
     const hasItems = (editorData.items.get(columnId) || []).length > 0;
     const hasSections = editorData.sections.some((s: any) => s.column_id === columnId);
     
-    if (hasItems || hasSections) {
-      if (!window.confirm("This column has content. Are you sure you want to delete it? This action cannot be undone.")) {
-        return;
+    const performDelete = () => {
+      // Remove from columns
+      editorData.setColumns((prev: Column[]) => prev.filter((c: Column) => c.id !== columnId));
+      
+      // Remove from cache
+      const column = editorData.columns.find((c: Column) => c.id === columnId);
+      if (column && column.parent_item_id) {
+        editorData.setColumnCache((prev: Map<string, Column>) => {
+          const newCache = new Map(prev);
+          newCache.delete(column.parent_item_id!);
+          return newCache;
+        });
       }
-    }
-
-    // Remove from columns
-    editorData.setColumns((prev: Column[]) => prev.filter((c: Column) => c.id !== columnId));
+      
+      // Track for database deletion
+      editorSave.setDeletedColumns((prev: Set<string>) => new Set(prev).add(columnId));
+      editorSave.setHasUnsavedChanges(true);
+      
+      // Navigate back on mobile if callback is provided
+      if (onNavigateBack) {
+        onNavigateBack();
+      }
+    };
     
-    // Remove from cache
-    const column = editorData.columns.find((c: Column) => c.id === columnId);
-    if (column && column.parent_item_id) {
-      editorData.setColumnCache((prev: Map<string, Column>) => {
-        const newCache = new Map(prev);
-        newCache.delete(column.parent_item_id!);
-        return newCache;
-      });
-    }
-    
-    // Track for database deletion
-    editorSave.setDeletedColumns((prev: Set<string>) => new Set(prev).add(columnId));
-    editorSave.setHasUnsavedChanges(true);
-    
-    // Navigate back on mobile if callback is provided
-    if (onNavigateBack) {
-      onNavigateBack();
+    if (hasItems || hasSections) {
+      confirm(
+        "Delete Column?",
+        "This column has content. Deleting it will remove all content permanently. This action cannot be undone.",
+        performDelete
+      );
+    } else {
+      performDelete();
     }
   };
 

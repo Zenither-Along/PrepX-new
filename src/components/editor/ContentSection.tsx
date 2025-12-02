@@ -81,7 +81,7 @@ export function ContentSection({
       case "video": return "Video";
       case "link": return "Link";
       case "list": return "List";
-      case "code": return "Code";
+      case "code": return "CODE";
       case "qna": return "Q&A";
       case "table": return "Table";
       default: return type;
