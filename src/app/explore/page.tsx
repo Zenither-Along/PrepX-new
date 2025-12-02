@@ -1,15 +1,14 @@
 import { getPublicPaths } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, BookOpen, Copy, ArrowLeft } from "lucide-react";
+import { Search, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { clonePath } from "@/lib/actions/actions";
-import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
-import { SignInButton } from "@clerk/nextjs";
 import { Logo } from "@/components/logo";
+import { ExploreClient } from "@/components/explore/ExploreClient";
+
+export const revalidate = 60; // Revalidate every 60 seconds
 
 export default async function ExplorePage({
   searchParams,
@@ -21,26 +20,8 @@ export default async function ExplorePage({
   const query = q || "";
   const tagFilter = tag || "";
   
-  const paths = await getPublicPaths(query, tagFilter);
-
-  async function handleClone(pathId: string) {
-    "use server";
-    const { userId } = await auth();
-    
-    // This function should only be called by authenticated users
-    if (!userId) {
-      return;
-    }
-    
-    try {
-      await clonePath(pathId);
-    } catch (error) {
-      console.error("Clone failed:", error);
-    }
-    redirect("/");
-  }
-
-
+  // Fetch initial page of paths (page 0, 12 items)
+  const { paths, total, hasMore } = await getPublicPaths(query, tagFilter, 0, 12);
 
   return (
     <div className="h-full overflow-y-auto bg-background">
@@ -83,7 +64,7 @@ export default async function ExplorePage({
             </form>
         </div>
 
-        {/* Tags Filter (Mock for now, or dynamic if we had a tags table) */}
+        {/* Tags Filter */}
         <div className="mb-8 flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
           {["React", "Next.js", "Python", "Design", "Interview"].map((t) => (
             <Link key={t} href={`/explore?tag=${t}`}>
@@ -101,60 +82,16 @@ export default async function ExplorePage({
           )}
         </div>
 
-        {/* Grid */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {paths?.map((path: any) => (
-            <Card key={path.id} className="flex flex-col overflow-hidden transition-all hover:shadow-lg hover:border-primary/50">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start gap-2">
-                  <CardTitle className="line-clamp-1 text-lg">{path.title}</CardTitle>
-                </div>
-                <p className="line-clamp-2 text-sm text-muted-foreground min-h-[40px]">
-                  {path.subtitle || "No description provided."}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {path.tags?.slice(0, 3).map((t: string) => (
-                    <Badge key={t} variant="secondary" className="text-xs">{t}</Badge>
-                  ))}
-                </div>
-              </CardHeader>
-              
-              <CardFooter className="mt-auto flex items-center justify-between border-t bg-muted/20 px-6 py-3">
-                <div className="flex gap-4 text-sm text-muted-foreground">
-
-                  <div className="flex items-center gap-1">
-                    <Copy className="h-4 w-4" />
-                    <span>{path.clones || 0}</span>
-                  </div>
-                </div>
-                
-                {/* Show clone button based on auth status */}
-                {!userId ? (
-                  <SignInButton mode="modal">
-                    <Button size="sm" variant="secondary" className="gap-2">
-                      <Copy className="h-3.5 w-3.5" />
-                      Clone (Sign in)
-                    </Button>
-                  </SignInButton>
-                ) : userId !== path.user_id ? (
-                  <form action={handleClone.bind(null, path.id)}>
-                    <Button size="sm" variant="secondary" className="gap-2">
-                      <Copy className="h-3.5 w-3.5" />
-                      Clone
-                    </Button>
-                  </form>
-                ) : null}
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-
-        {paths?.length === 0 && (
-          <div className="text-center py-20">
-            <h3 className="text-lg font-semibold">No paths found</h3>
-            <p className="text-muted-foreground">Try adjusting your search or filters.</p>
-          </div>
-        )}
+        {/* Client component with infinite scroll */}
+        <ExploreClient
+          key={`${query}-${tagFilter}`} // Force remount when filters change
+          initialPaths={paths}
+          initialTotal={total}
+          initialHasMore={hasMore}
+          userId={userId}
+          searchQuery={query}
+          tagFilter={tagFilter}
+        />
       </main>
     </div>
   );

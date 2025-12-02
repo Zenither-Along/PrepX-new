@@ -58,7 +58,7 @@ export function useProfileStats() {
       const { count: classroomsJoined } = await supabase
         .from('classroom_members')
         .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id);
+        .eq('student_id', user.id);
 
       // Fetch assignments created
       const { count: assignmentsCreated } = await supabase
@@ -74,10 +74,11 @@ export function useProfileStats() {
 
       // Fetch quizzes taken (we'll use a simple count from a potential quiz_attempts table)
       // For now, we can count quizzes from the quizzes table
-      const { count: quizzesTaken } = await supabase
-        .from('quizzes')
-        .select('*', { count: 'exact', head: true })
-        .eq('created_by', user.id);
+      // NOTE: 'created_by' column does not exist on 'quizzes' table yet.
+      // const { count: quizzesTaken } = await supabase
+      //   .from('quizzes')
+      //   .select('*', { count: 'exact', head: true })
+      //   .eq('created_by', user.id);
 
       setStats({
         paths_created: pathsCreated || 0,
@@ -85,7 +86,7 @@ export function useProfileStats() {
         classrooms_joined: classroomsJoined || 0,
         assignments_created: assignmentsCreated || 0,
         assignments_submitted: assignmentsSubmitted || 0,
-        quizzes_taken: quizzesTaken || 0,
+        quizzes_taken: 0, // quizzesTaken || 0,
       });
     } catch (err: any) {
       console.error('Error fetching stats:', err);

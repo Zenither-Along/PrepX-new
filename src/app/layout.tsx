@@ -75,6 +75,8 @@ export const metadata: Metadata = {
   }
 };
 
+import { SupabaseProvider } from "@/components/providers/supabase-provider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -84,20 +86,22 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body className={`${instrumentSans.variable} antialiased font-sans`}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <ActivityTrackerWrapper>
-              <PathGenerationProvider>
-                {children}
-                <RoleSelectionDialog />
-              </PathGenerationProvider>
-            </ActivityTrackerWrapper>
-            <Toaster />
-          </ThemeProvider>
+          <SupabaseProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <ActivityTrackerWrapper>
+                <PathGenerationProvider>
+                  {children}
+                  <RoleSelectionDialog />
+                </PathGenerationProvider>
+              </ActivityTrackerWrapper>
+              <Toaster />
+            </ThemeProvider>
+          </SupabaseProvider>
         </body>
       </html>
     </ClerkProvider>
