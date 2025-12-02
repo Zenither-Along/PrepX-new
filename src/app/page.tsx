@@ -1,7 +1,7 @@
 "use client";
 
-import { UserButton } from "@clerk/nextjs";
-import { BookOpen, Globe, School, Sparkles } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
+import { BookOpen, Globe, School, Sparkles, User } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { 
@@ -139,14 +139,11 @@ export default function Home() {
               </Button>
             </Link>
             <ModeToggle />
-            <UserButton 
-              afterSignOutUrl="/" 
-              appearance={{
-                elements: {
-                  userButtonAvatarBox: "w-9 h-9"
-                }
-              }}
-            />
+            <Link href="/profile">
+              <Button variant="ghost" size="icon">
+                <User className="h-5 w-5" />
+              </Button>
+            </Link>
           </div>
         </div>
       </nav>

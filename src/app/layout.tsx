@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { RoleSelectionDialog } from "@/components/auth/RoleSelectionDialog";
 import { PathGenerationProvider } from "@/context/PathGenerationContext";
 import { Toaster } from "@/components/ui/toaster";
+import { ActivityTrackerWrapper } from "@/components/ActivityTrackerWrapper";
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-instrument-sans",
@@ -89,10 +90,12 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <PathGenerationProvider>
-              {children}
-              <RoleSelectionDialog />
-            </PathGenerationProvider>
+            <ActivityTrackerWrapper>
+              <PathGenerationProvider>
+                {children}
+                <RoleSelectionDialog />
+              </PathGenerationProvider>
+            </ActivityTrackerWrapper>
             <Toaster />
           </ThemeProvider>
         </body>

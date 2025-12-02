@@ -11,6 +11,7 @@ import { useSearchParams } from "next/navigation";
 import { usePathData } from "./hooks/usePathData";
 import { useAssignmentLogic } from "./hooks/useAssignmentLogic";
 import { useColumnResizer } from "@/hooks/useColumnResizer";
+import { useTimeTracker } from "@/hooks/useTimeTracker";
 import { MobilePathView } from "./components/MobilePathView";
 import { DesktopPathView } from "./components/DesktopPathView";
 
@@ -18,6 +19,9 @@ export default function ViewPathPage() {
   const { id } = useParams();
   const searchParams = useSearchParams();
   const backUrl = searchParams.get("backUrl");
+
+  // Track learning time on this page
+  useTimeTracker();
 
   // Custom Hooks
   const {
