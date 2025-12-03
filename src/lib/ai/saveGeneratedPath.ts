@@ -140,21 +140,55 @@ export async function saveGeneratedPath(
           // Format content based on type
           let contentData: any = {};
           
-          if (section.type === "heading") {
-            contentData = { text: section.content };
-          } else if (section.type === "paragraph") {
-            contentData = { text: section.content };
-          } else if (section.type === "code") {
+          if (section.type === "heading" || section.type === "paragraph" || section.type === "subheading") {
+            // Convert old types to rich-text format
+            contentData = { html: section.content };
+          } else if (section.type === "rich-text") {
+            // Handle both string and object content
             contentData = { 
-              code: section.content,
-              language: "javascript"
+              html: typeof section.content === 'object' && (section.content as any).html 
+                ? (section.content as any).html 
+                : section.content 
+            };
+          } else if (section.type === "code") {
+            const codeContent = typeof section.content === 'object' && (section.content as any).code
+              ? (section.content as any).code
+              : section.content;
+            contentData = { 
+              code: codeContent,
+              language: typeof section.content === 'object' && (section.content as any).language
+                ? (section.content as any).language
+                : "bash"
             };
           } else if (section.type === "list") {
             contentData = { 
               items: Array.isArray(section.content) ? section.content : [section.content]
             };
+          } else if (section.type === "image") {
+            contentData = typeof section.content === 'object' 
+              ? section.content 
+              : { url: section.content, caption: '' };
+          } else if (section.type === "video") {
+            contentData = typeof section.content === 'object' 
+              ? section.content 
+              : { url: section.content, title: '' };
+          } else if (section.type === "link") {
+            contentData = typeof section.content === 'object' 
+              ? section.content 
+              : { url: section.content, title: '' };
+          } else if (section.type === "qna") {
+            contentData = typeof section.content === 'object' 
+              ? section.content 
+              : { question: '', answer: section.content };
+          } else if (section.type === "table") {
+            contentData = typeof section.content === 'object' && (section.content as any).data
+              ? section.content
+              : { data: [['', ''], ['', '']] };
           } else {
-            contentData = { text: section.content };
+            // Fallback for unknown types
+            contentData = typeof section.content === 'object' 
+              ? section.content 
+              : { text: section.content };
           }
 
           const { error: sectionError } = await supabase

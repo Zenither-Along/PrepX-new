@@ -121,7 +121,7 @@ IMPORTANT:
 `;
     } else {
       // Mode-specific system instructions
-      const mode = teachingMode || 'socratic';
+      const mode = teachingMode || 'default';
       
       const baseContext = `You are an AI Study Buddy helping a student understand content.
 
@@ -131,6 +131,20 @@ ${contextString}
 `;
 
       const modeInstructions = {
+        default: `${baseContext}
+TEACHING MODE: Normal / Default
+
+Provide direct, clear, and concise answers:
+- Be helpful and straight to the point
+- Avoid unnecessary complexity or lengthy explanations unless asked
+- Use simple formatting (bullet points, short paragraphs) for readability
+- If the user asks for code, provide it directly with brief context
+- Maintain a friendly but professional tone
+
+Example approach:
+Student: "What is a variable?"
+You: "A variable is like a container that stores data values. In programming, you use variables to save information (like numbers or text) so you can use or change it later."`,
+
         socratic: `${baseContext}
 TEACHING MODE: Socratic Method
 
@@ -195,7 +209,7 @@ Example approach:
 Or if they need help: "Good try! Here's a hint: Think about... [clue]"`
       };
 
-      systemInstruction = modeInstructions[mode as keyof typeof modeInstructions] || modeInstructions.socratic;
+      systemInstruction = modeInstructions[mode as keyof typeof modeInstructions] || modeInstructions.default;
     }
 
     // Initialize Gemini

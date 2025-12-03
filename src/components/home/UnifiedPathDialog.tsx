@@ -56,6 +56,7 @@ export function UnifiedPathDialog({
   const [depth, setDepth] = useState<"shallow" | "medium" | "deep">("medium");
   const [audience, setAudience] = useState<"beginner" | "intermediate" | "advanced">("intermediate");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [generatedData, setGeneratedData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,14 +102,22 @@ export function UnifiedPathDialog({
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (generatedData && onPathGenerated) {
-      onPathGenerated(generatedData);
-      onOpenChange(false);
-      // Reset form
-      setTopic("");
-      setGeneratedData(null);
-      setError(null);
+      setIsSaving(true);
+      try {
+        await onPathGenerated(generatedData);
+        onOpenChange(false);
+        // Reset form
+        setTopic("");
+        setGeneratedData(null);
+        setError(null);
+      } catch (error) {
+        console.error("Error saving path:", error);
+        setError("Failed to save the path. Please try again.");
+      } finally {
+        setIsSaving(false);
+      }
     }
   };
 
@@ -370,12 +379,26 @@ export function UnifiedPathDialog({
                     }}
                     variant="outline"
                     className="flex-1"
+                    disabled={isSaving}
                   >
                     Generate Again
                   </Button>
-                  <Button onClick={handleSave} className="flex-1 gap-2">
-                    <Save className="h-4 w-4" />
-                    Save as New Path
+                  <Button 
+                    onClick={handleSave} 
+                    className="flex-1 gap-2"
+                    disabled={isSaving}
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Saving Path...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4" />
+                        Save as New Path
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>

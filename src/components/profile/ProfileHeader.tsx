@@ -7,15 +7,22 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Profile } from '@/hooks/useProfile';
-import { GraduationCap, BookOpen, Pencil, Check, X } from 'lucide-react';
+import { GraduationCap, BookOpen, Pencil, Check, X, ChevronDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ProfileHeaderProps {
   profile: Profile | null;
   onUpdateName: (name: string) => Promise<void>;
+  onUpdateRole: (role: 'student' | 'teacher') => Promise<void>;
   loading?: boolean;
 }
 
-export function ProfileHeader({ profile, onUpdateName, loading }: ProfileHeaderProps) {
+export function ProfileHeader({ profile, onUpdateName, onUpdateRole, loading }: ProfileHeaderProps) {
   const { user } = useUser();
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameValue, setNameValue] = useState(profile?.full_name || '');
@@ -100,19 +107,37 @@ export function ProfileHeader({ profile, onUpdateName, loading }: ProfileHeaderP
                 </Button>
               </>
             )}
-            <Badge variant={profile.role === 'teacher' ? 'default' : 'secondary'} className="flex items-center gap-1">
-              {profile.role === 'teacher' ? (
-                <>
-                  <GraduationCap className="h-3 w-3" />
-                  Educator
-                </>
-              ) : (
-                <>
-                  <BookOpen className="h-3 w-3" />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Badge 
+                  variant={profile.role === 'teacher' ? 'default' : 'secondary'} 
+                  className="flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity"
+                >
+                  {profile.role === 'teacher' ? (
+                    <>
+                      <GraduationCap className="h-3 w-3" />
+                      Educator
+                    </>
+                  ) : (
+                    <>
+                      <BookOpen className="h-3 w-3" />
+                      Student
+                    </>
+                  )}
+                  <ChevronDown className="h-3 w-3 ml-1 opacity-50" />
+                </Badge>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => onUpdateRole('student')} disabled={profile.role === 'student'}>
+                  <BookOpen className="mr-2 h-4 w-4" />
                   Student
-                </>
-              )}
-            </Badge>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onUpdateRole('teacher')} disabled={profile.role === 'teacher'}>
+                  <GraduationCap className="mr-2 h-4 w-4" />
+                  Educator
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           
           <p className="text-muted-foreground mb-1">{profile.email}</p>

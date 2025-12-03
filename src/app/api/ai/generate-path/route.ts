@@ -99,7 +99,13 @@ function buildSystemInstruction(
   const audience = options?.audience || 'intermediate';
   const numBranches = options?.numBranches || 4;
   const numItems = options?.numItems || 5;
-  const numSections = options?.numSections || 3;
+  
+  // Dynamic section count based on depth if not explicitly provided
+  let defaultNumSections = 3;
+  if (depth === 'deep') defaultNumSections = 6;
+  if (depth === 'shallow') defaultNumSections = 2;
+  
+  const numSections = options?.numSections || defaultNumSections;
 
   const baseInstruction = `You are an expert learning path designer. Your goal is to create structured, comprehensive learning content.
 
@@ -127,16 +133,16 @@ OUTPUT FORMAT (JSON):
           "title": "Specific topic/subtopic",
           "sections": [
             {
-              "type": "heading",
-              "content": "Section title"
-            },
-            {
-              "type": "paragraph",
-              "content": "Detailed explanation text"
+              "type": "rich-text",
+              "content": "<h2>Introduction</h2><p>Detailed explanation of the concept...</p>"
             },
             {
               "type": "code",
               "content": "// Code example if relevant"
+            },
+            {
+              "type": "rich-text",
+              "content": "<h3>Key Takeaways</h3><ul><li>Point 1</li><li>Point 2</li></ul>"
             }
           ]
         }
@@ -148,12 +154,18 @@ OUTPUT FORMAT (JSON):
 REQUIREMENTS:
 - Create ${numBranches} main branches (modules/categories)
 - Each branch should have ${numItems} items (topics)
-- Each item should have ${numSections} content sections
-- Content types: heading, paragraph, code (for programming topics), list
-- For ${depth} depth: ${depth === 'shallow' ? 'Focus on high-level overview' : depth === 'deep' ? 'Include detailed explanations and examples' : 'Balance overview with practical details'}
+- For each item, generate comprehensive content with approximately ${numSections} sections (adapt based on topic complexity)
+- Content types allowed: 
+  - "rich-text": Use HTML tags (h2, h3, p, ul, ol, strong, em) for headings, explanations, and lists. Return the HTML as a STRING.
+  - "code": For code snippets (use plain text, no markdown backticks).
+  - "image": If a visual would help, return {"url": "placeholder-url", "caption": "description"}.
+  - "qna": For review questions, return {"question": "...", "answer": "..."}.
+- For ${depth} depth: ${depth === 'shallow' ? 'Focus on high-level overview' : depth === 'deep' ? 'Include detailed explanations, examples, and edge cases' : 'Balance overview with practical details'}
 - For ${audience} audience: ${audience === 'beginner' ? 'Use simple language, explain basics' : audience === 'advanced' ? 'Use technical terminology, assume prior knowledge' : 'Balance accessibility with depth'}
 - Make content actionable and practical
 - Include examples where appropriate
+- **CRITICAL**: Do NOT repeat the same structure for every item. Vary the content types and order based on what best explains the specific topic.
+- **CRITICAL**: Ensure "rich-text" content is a valid HTML string, NOT an object.
 
 Return ONLY the JSON, no additional text.`;
 
@@ -224,25 +236,29 @@ OUTPUT FORMAT (JSON):
 {
   "sections": [
     {
-      "type": "heading" | "paragraph" | "code" | "list",
+      "type": "rich-text" | "code" | "image" | "video" | "link" | "qna",
       "content": "Content here"
     }
   ]
 }
 
 SECTION TYPES:
-- heading: Section title or subheading
-- paragraph: Text explanation
-- code: Code examples (use appropriate syntax)
-- list: Bullet points or numbered lists (use JSON array)
+- "rich-text": Use HTML (h2, h3, p, ul, ol) for text content. Combine headings and paragraphs into single rich-text sections where logical.
+- "code": Code snippets (plain text).
+- "image": {"url": "...", "caption": "..."}
+- "video": {"url": "...", "title": "..."}
+- "link": {"url": "...", "title": "..."}
+- "qna": {"question": "...", "answer": "..."}
 
 REQUIREMENTS:
-- Generate ${numSections} content sections
-- Start with a heading that introduces the topic
-- Include clear explanations
+- Generate approximately ${numSections} content sections (adapt to topic needs)
+- Start with a rich-text section introducing the topic
+- Use rich-text for explanations, combining headings and paragraphs. Return HTML as a STRING.
 - Add code examples for programming topics
 - Make content comprehensive yet concise
 - Structure content logically (intro -> explanation -> example -> summary)
+- **CRITICAL**: Do NOT repeat the same structure for every item. Vary the content types and order based on what best explains the specific topic.
+- **CRITICAL**: Ensure "rich-text" content is a valid HTML string, NOT an object.
 
 Return ONLY the JSON, no additional text.`;
 

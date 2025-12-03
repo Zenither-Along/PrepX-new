@@ -19,7 +19,7 @@ import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 
 export default function ProfilePage() {
-  const { profile, loading: profileLoading, updateBio, updateName, updateThemePreference } = useProfile();
+  const { profile, loading: profileLoading, updateBio, updateName, updateThemePreference, updateRole } = useProfile();
   const { stats, recentActivity, loading: statsLoading } = useProfileStats();
 
   const handleUpdateBio = async (bio: string) => {
@@ -46,6 +46,15 @@ export default function ProfilePage() {
       variant: "success",
       title: "Theme updated!",
       description: `Theme preference set to ${theme}.`,
+    });
+  };
+
+  const handleUpdateRole = async (role: 'student' | 'teacher') => {
+    await updateRole(role);
+    toast({
+      variant: "success",
+      title: "Role updated!",
+      description: `You are now a ${role === 'teacher' ? 'Educator' : 'Student'}.`,
     });
   };
 
@@ -143,6 +152,7 @@ export default function ProfilePage() {
       <ProfileHeader 
         profile={profile} 
         onUpdateName={handleUpdateName}
+        onUpdateRole={handleUpdateRole}
         loading={profileLoading}
       />
 

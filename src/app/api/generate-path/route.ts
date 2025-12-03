@@ -18,7 +18,7 @@ const structureSchema = z.object({
 
 const contentSchema = z.object({
   sections: z.array(z.object({
-    type: z.enum(['heading', 'paragraph', 'code', 'callout', 'list']),
+    type: z.enum(['rich-text', 'code', 'image', 'video', 'link', 'qna']),
     content: z.any(),
   })),
 });
@@ -117,13 +117,15 @@ export async function POST(req: Request) {
         Return ONLY valid JSON matching this structure:
         {
           "sections": [
-            { "type": "heading", "content": "Section Title" },
-            { "type": "paragraph", "content": "Text content..." },
-            { "type": "list", "content": ["Item 1", "Item 2"] },
-            { "type": "callout", "content": "Important note" },
-            { "type": "code", "content": "Code snippet if applicable" }
+            { "type": "rich-text", "content": "<h2>Section Title</h2><p>Text content...</p><ul><li>Item 1</li></ul>" },
+            { "type": "code", "content": "Code snippet if applicable" },
+            { "type": "image", "content": { "url": "...", "caption": "..." } },
+            { "type": "qna", "content": { "question": "...", "answer": "..." } }
           ]
         }
+        
+        CRITICAL: Do NOT repeat the same structure for every item. Vary the content types and order based on what best explains the specific topic.
+        CRITICAL: Ensure "rich-text" content is a valid HTML string, NOT an object.
       `;
 
       const contentResult = await generateWithRetry(prompt);

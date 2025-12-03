@@ -24,9 +24,11 @@ export function useSectionHandlers(
       finalType = 'rich-text';
       content = { html: `<p>${initialContent || ''}</p>` };
     } else if (type === 'rich-text') {
-      content = { html: initialContent || '' };
+      // Handle both string and object content for rich-text
+      const htmlContent = typeof initialContent === 'object' ? initialContent.html : initialContent;
+      content = { html: htmlContent || '' };
     } else if (type === 'code') {
-      content = { code: initialContent || '', language: 'javascript' };
+      content = { code: initialContent || '', language: 'bash' };
     } else if (type === 'table') {
       // Initialize a simple 2x2 empty table
       content = { data: [['', ''], ['', '']] };
@@ -36,6 +38,10 @@ export function useSectionHandlers(
       content = typeof initialContent === 'object' ? initialContent : { url: initialContent || '', title: '' };
     } else if (type === 'qna') {
       content = typeof initialContent === 'object' ? initialContent : { question: '', answer: initialContent || '' };
+    } else if (type === 'image') {
+      content = typeof initialContent === 'object' ? initialContent : { url: initialContent || '', caption: '' };
+    } else if (type === 'video') {
+      content = typeof initialContent === 'object' ? initialContent : { url: initialContent || '', title: '' };
     } else {
       content = { url: initialContent || '' };
     }

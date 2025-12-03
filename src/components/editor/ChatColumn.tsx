@@ -44,9 +44,10 @@ interface Message {
   created_at?: string;
 }
 
-type TeachingMode = "socratic" | "eli5" | "expert" | "quiz";
+type TeachingMode = "default" | "socratic" | "eli5" | "expert" | "quiz";
 
 const TEACHING_MODES = [
+  { value: "default", label: "🤖 Normal", description: "Simple & direct answers" },
   { value: "socratic", label: "🤔 Socratic", description: "Guiding questions" },
   { value: "eli5", label: "👶 ELI5", description: "Simple explanations" },
   { value: "expert", label: "🎓 Expert", description: "Technical depth" },
@@ -123,7 +124,7 @@ export function ChatColumn({ columnId, contextData, onClose }: ChatColumnProps) 
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isWebSearchEnabled, setIsWebSearchEnabled] = useState(false);
-  const [teachingMode, setTeachingMode] = useState<TeachingMode>("socratic");
+  const [teachingMode, setTeachingMode] = useState<TeachingMode>("default");
   const [showHistory, setShowHistory] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
