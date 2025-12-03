@@ -72,7 +72,13 @@ export function EditorCanvas({
               <ArrowLeft className="h-5 w-5" />
             </Button>
           )}
-          <h2 className="text-xl font-bold flex-1">{title}</h2>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => handleUpdateBranchTitle(col.id, e.target.value)}
+            className="flex-1 bg-transparent text-xl font-bold placeholder-muted-foreground focus:outline-none min-w-0"
+            placeholder="Branch Title"
+          />
         </div>
         <div className="flex-1 overflow-y-auto p-4">
           <div className="space-y-2">

@@ -35,7 +35,7 @@ export function useTimeTracker() {
       if (updateError) throw updateError;
       
     } catch (err) {
-      console.error('Error updating profile total time:', err);
+      console.error('Error updating profile total time:', err instanceof Error ? err.message : String(err), err);
     }
   };
 
@@ -66,7 +66,7 @@ export function useTimeTracker() {
           onConflict: 'user_id,date'
         });
     } catch (err) {
-      console.error('Error saving to activity history:', err);
+      console.error('Error saving to activity history:', err instanceof Error ? err.message : String(err), err);
     }
   };
 

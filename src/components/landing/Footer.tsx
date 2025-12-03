@@ -30,7 +30,7 @@ export function Footer() {
               <ul className="space-y-3">
                 <li>
                   <Link href="/#features" className="text-sm text-gray-600 hover:text-primary transition-colors">
-                    AI Path Generator
+                    AI Features
                   </Link>
                 </li>
                 <li>
@@ -51,13 +51,8 @@ export function Footer() {
               <h3 className="text-sm font-semibold text-gray-900 mb-4">About Us</h3>
               <ul className="space-y-3">
                 <li>
-                  <Link href="/#how-it-works" className="text-sm text-gray-600 hover:text-primary transition-colors">
-                    How It Works
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/#use-cases" className="text-sm text-gray-600 hover:text-primary transition-colors">
-                    Use Cases
+                  <Link href="/blog" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                    Blogs
                   </Link>
                 </li>
                 <li>
