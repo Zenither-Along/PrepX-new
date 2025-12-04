@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sparkles, Send, Loader2, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface AIAssistantColumnProps {
   width: number;
@@ -55,6 +56,8 @@ What would you like to create?`
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [executingPlan, setExecutingPlan] = useState(false);
+  const { toast } = useToast();
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -176,6 +179,26 @@ What would you like to create?`
     }
   };
 
+  const handleExecutePlan = async (plan: any) => {
+    setExecutingPlan(true);
+    try {
+      await onExecutePlan(plan);
+      toast({
+        title: "Plan Executed Successfully",
+        description: "Your changes have been applied to the path.",
+      });
+    } catch (error) {
+      console.error("Error executing plan:", error);
+      toast({
+        title: "Error",
+        description: "Failed to execute the plan. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setExecutingPlan(false);
+    }
+  };
+
   return (
     <div 
       className={cn(
@@ -229,10 +252,20 @@ What would you like to create?`
                       <Button 
                         size="sm" 
                         className="w-full gap-2"
-                        onClick={() => onExecutePlan(msg.plan)}
+                        onClick={() => handleExecutePlan(msg.plan)}
+                        disabled={executingPlan}
                       >
-                        <Check className="h-3 w-3" />
-                        Approve & Execute
+                        {executingPlan ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Executing...
+                          </>
+                        ) : (
+                          <>
+                            <Check className="h-3 w-3" />
+                            Approve & Execute
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>

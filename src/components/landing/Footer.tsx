@@ -29,12 +29,12 @@ export function Footer() {
               <h3 className="text-sm font-semibold text-gray-900 mb-4">Features</h3>
               <ul className="space-y-3">
                 <li>
-                  <Link href="/#features" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  <Link href="/features/ai" className="text-sm text-gray-600 hover:text-primary transition-colors">
                     AI Features
                   </Link>
                 </li>
                 <li>
-                  <Link href="/#features" className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  <Link href="/features/classrooms" className="text-sm text-gray-600 hover:text-primary transition-colors">
                     Classrooms
                   </Link>
                 </li>
