@@ -23,7 +23,12 @@ export function useTimeTracker() {
         .eq('user_id', user.id)
         .single();
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        // Silently ignore if profile not found - user might not have a profile yet
+        if (fetchError.code === 'PGRST116') return;
+        console.warn('Failed to fetch profile for time update:', fetchError.message);
+        return;
+      }
 
       const newTotal = (profile?.total_minutes_learned || 0) + minutes;
 
@@ -32,10 +37,16 @@ export function useTimeTracker() {
         .update({ total_minutes_learned: newTotal })
         .eq('user_id', user.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.warn('Failed to update total time:', updateError.message);
+      }
       
-    } catch (err) {
-      console.error('Error updating profile total time:', err instanceof Error ? err.message : String(err), err);
+    } catch (err: unknown) {
+      // Silently handle unexpected errors - time tracking is non-critical
+      if (process.env.NODE_ENV === 'development') {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        console.warn('Time tracking error:', message);
+      }
     }
   };
 
