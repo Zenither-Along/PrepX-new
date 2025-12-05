@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { checkAndIncrementUsage, createLimitExceededResponse } from "@/lib/usageLimit";
 
 export const maxDuration = 30;
 
@@ -27,6 +28,12 @@ interface GeneratePathRequest {
 
 export async function POST(req: Request) {
   try {
+    // Check usage limits first
+    const usageResult = await checkAndIncrementUsage('content_generation');
+    if (usageResult && !usageResult.allowed) {
+      return createLimitExceededResponse('content_generation', usageResult);
+    }
+
     const body: GeneratePathRequest = await req.json();
     const { mode, topic, context, options } = body;
 

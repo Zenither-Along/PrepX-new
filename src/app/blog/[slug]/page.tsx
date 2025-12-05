@@ -84,7 +84,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         {/* Meta */}
         <div className="flex flex-wrap items-center gap-6 text-gray-600 dark:text-gray-400 mb-8 pb-8 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-2">
-            <div className="relative w-8 h-8 flex-shrink-0">
+            <div className="relative w-8 h-8 shrink-0">
               <Image
                 src="/logo-icon-light.png"
                 alt="PrepX"
@@ -137,7 +137,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         </div>
 
         {/* Footer CTA */}
-        <div className="mt-16 p-8 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl border border-primary/20">
+        <div className="mt-16 p-8 bg-linear-to-br from-primary/10 to-primary/5 rounded-xl border border-primary/20">
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             Ready to Get Started?
           </h3>

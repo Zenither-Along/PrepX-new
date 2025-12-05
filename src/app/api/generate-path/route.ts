@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { z } from 'zod';
+import { checkAndIncrementUsage, createLimitExceededResponse } from "@/lib/usageLimit";
 
 export const maxDuration = 60;
 
@@ -25,6 +26,12 @@ const contentSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    // Check usage limits first
+    const usageResult = await checkAndIncrementUsage('path_generation');
+    if (usageResult && !usageResult.allowed) {
+      return createLimitExceededResponse('path_generation', usageResult);
+    }
+
     const { action, text, context } = await req.json();
     const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 

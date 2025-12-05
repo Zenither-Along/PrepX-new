@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { checkAndIncrementUsage, createLimitExceededResponse } from "@/lib/usageLimit";
 
 export const maxDuration = 30;
 
@@ -14,6 +15,12 @@ interface GenerateQuizRequest {
 
 export async function POST(req: Request) {
   try {
+    // Check usage limits first
+    const usageResult = await checkAndIncrementUsage('quiz');
+    if (usageResult && !usageResult.allowed) {
+      return createLimitExceededResponse('quiz', usageResult);
+    }
+
     const body: GenerateQuizRequest = await req.json();
     const { content, topic, options } = body;
 

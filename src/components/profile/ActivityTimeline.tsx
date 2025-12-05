@@ -89,7 +89,7 @@ export function ActivityTimeline({ activities, loading }: ActivityTimelineProps)
           </div>
         ) : (
           <div className="space-y-4">
-            {activities.map((activity) => {
+            {activities.slice(0, 10).map((activity) => {
               const Icon = getActivityIcon(activity.type);
               const color = getActivityColor(activity.type);
               const label = getActivityLabel(activity.type);

@@ -17,6 +17,7 @@ import { ModeToggle } from '@/components/mode-toggle';
 import { Logo } from '@/components/logo';
 import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
+import { ProfilePlanCard } from '@/components/profile/ProfilePlanCard';
 
 export default function ProfilePage() {
   const { profile, loading: profileLoading, updateBio, updateName, updateThemePreference, updateRole } = useProfile();
@@ -169,6 +170,7 @@ export default function ProfilePage() {
             profile={profile}
             loading={profileLoading}
           />
+          <ProfilePlanCard />
           <ProfileSettings
             profile={profile}
             onUpdateTheme={handleUpdateTheme}
@@ -211,6 +213,7 @@ export default function ProfilePage() {
               profile={profile}
               loading={profileLoading}
             />
+            <ProfilePlanCard />
           </TabsContent>
 
           <TabsContent value="activity" className="mt-6 space-y-6">

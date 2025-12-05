@@ -1,10 +1,17 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { checkAndIncrementUsage, createLimitExceededResponse } from "@/lib/usageLimit";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
   try {
+    // Check usage limits first
+    const usageResult = await checkAndIncrementUsage('chat');
+    if (usageResult && !usageResult.allowed) {
+      return createLimitExceededResponse('chat', usageResult);
+    }
+
     const body = await req.json();
     // Check for jsonMode and teachingMode
     const { messages, columnId, context, webSearch, jsonMode, teachingMode, editingSection } = body;

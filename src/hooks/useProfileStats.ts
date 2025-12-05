@@ -98,13 +98,13 @@ export function useProfileStats() {
     if (!user) return;
 
     try {
-      // Fetch recent paths
+      // Fetch recent paths (limit to 10 for display)
       const { data: recentPaths } = await supabase
         .from('learning_paths')
         .select('id, title, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(10);
 
       const activities: RecentActivity[] = [];
 
